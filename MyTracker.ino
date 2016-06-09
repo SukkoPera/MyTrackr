@@ -2,8 +2,8 @@
 
 #include <PString.h>
 
-#include <SoftwareSerial.h>
-SoftwareSerial ss (7, 8);
+//~ #include <SoftwareSerial.h>
+//~ SoftwareSerial ss (7, 8);
 //#define GPS_SERIAL ss
 #define GPS_SERIAL Serial
 #define GPS_INTERVAL 100
@@ -61,7 +61,7 @@ struct ValidFloat {
 
 struct GpsFix {
 	Position pos;
-	ValidFloat course;
+	ValidFloat course;		// Degrees from True North
 	ValidFloat speed;		// km/h
 	unsigned long age;
 	unsigned int nsats;
@@ -94,9 +94,9 @@ void draw () {
 				u8g.print (fix.pos.lon, 6);
 			} else {
 				u8g.setPrintPos (52, 32);
-				u8g.print ("?");
+				u8g.print (F("N/A"));
 				u8g.setPrintPos (52, 42);
-				u8g.print ("?");
+				u8g.print (F("N/A"));
 			}
 			break;
 		case 1: {
@@ -106,17 +106,17 @@ void draw () {
 			u8g.setPrintPos (52, 32);
 			if (fix.course.valid) {
 				u8g.print (fix.course.value);
-				u8g.print ((char) 176);   // degrees symbol
+				u8g.print ((char) 176);   // Degrees symbol, font-dependent
 			} else {
-				u8g.print ("N/A");
+				u8g.print (F("N/A"));
 			}
 
 			u8g.setPrintPos (52, 42);
 			if (fix.speed.valid) {
 				u8g.print (fix.speed.value);
-				u8g.print (" km/h");
+				u8g.print (F(" km/h"));
 			} else {
-				u8g.print ("N/A");
+				u8g.print (F("N/A"));
 			}
 			break;
 		} case 2:
@@ -126,28 +126,28 @@ void draw () {
 			if (timeStatus () != timeNotSet) {
 				u8g.setPrintPos (52, 32);
 				u8g.print (day ());
-				u8g.print ("/");
+				u8g.print ('/');
 				u8g.print (month ());
-				u8g.print ("/");
+				u8g.print ('/');
 				u8g.print (year ());
 
 				u8g.setPrintPos (52, 42);
 				if (hour () < 10)
 					u8g.print (0);
 				u8g.print (hour ());
-				u8g.print (":");
+				u8g.print (':');
 				if (minute () < 10)
 					u8g.print (0);
 				u8g.print (minute ());
-				u8g.print (":");
+				u8g.print (':');
 				if (second () < 10)
 					u8g.print (0);
 				u8g.print (second ());
 			} else {
 				u8g.setPrintPos (52, 32);
-				u8g.print ("?");
+				u8g.print (F("N/A"));
 				u8g.setPrintPos (52, 42);
-				u8g.print ("?");
+				u8g.print (F("N/A"));
 			}
 			break;
 	}
