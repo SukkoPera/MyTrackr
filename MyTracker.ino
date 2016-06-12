@@ -35,19 +35,20 @@ U8GLIB_SSD1306_128X64 u8g (U8G_I2C_OPT_DEV_0 | U8G_I2C_OPT_NO_ACK | U8G_I2C_OPT_
 // Time
 #include <TimeLib.h>
 
-// FIXME: Put into config menu
-// Offset hours from gps time (UTC)
+/* Offset hours from gps time (UTC)
+ * Ideally, it should be possible to learn the time zone based on the GPS
+ * position data.  However, that would require a complex library, probably
+ * incorporating some sort of database using Eric Muller's time zone shape maps,
+ * at http://efele.net/maps/tz/
+ *
+ * FIXME: Put into config menu
+ */
 const byte timeZoneOffset = 1;   // Central European Time
 //const byte timeZoneOffset = -5;  // Eastern Standard Time (USA)
 //const byte timeZoneOffset = -4;  // Eastern Daylight Time (USA)
 //const byte timeZoneOffset = -8;  // Pacific Standard Time (USA)
 //const byte timeZoneOffset = -7;  // Pacific Daylight Time (USA)
 
-// Ideally, it should be possible to learn the time zone
-// based on the GPS position data.  However, that would
-// require a complex library, probably incorporating some
-// sort of database using Eric Muller's time zone shape
-// maps, at http://efele.net/maps/tz/
 
 #define HEADER_HEIGHT 16
 
@@ -79,8 +80,11 @@ unsigned long lastLogMillis = 0;
 void draw () {
 	u8g.setFontPosTop ();
 
-	// Sat icon
-	u8g.drawXBMP (0, 0, sat_width, sat_height, sat_bits);
+	// Sat icon (Blink if fix is not valid)
+	time_t tt = makeTime (fix.time) + (timeZoneOffset + dstOffset ()) * SECS_PER_HOUR;
+	if ((fix.pos.valid && timeStatus () == timeSet && now () - tt < 10) || ((millis () / 1000) % 2) == 0) {
+		u8g.drawXBMP (0, 0, sat_width, sat_height, sat_bits);
+	}
 
 	// Number of sats in view
 	u8g.setFont (u8g_font_6x10);
@@ -159,9 +163,9 @@ void draw () {
 			break;
 	}
 
-	// SD icon
+	// SD icon (blink if SD failed)
 #ifdef ENABLE_SD
-	if (sdAvailable) {
+	if (sdAvailable || ((millis () / 1000) % 2) == 0) {
 		u8g.drawXBMP (90, 0, microsd_width, microsd_height, microsd_bits);
 	}
 #endif
@@ -258,16 +262,15 @@ void decodeGPS () {
 	fix.speed.value = gps.f_speed_kmph ();
 	fix.speed.valid = fix.speed.value != TinyGPS::GPS_INVALID_F_SPEED;
 
-	fix.nsats = gps.satellites ();
+	fix.nsats = gps.satellites () != TinyGPS::GPS_INVALID_SATELLITES ? gps.satellites () : 0;
 
 	// Set the time to the latest GPS reading
 	int year;
 	gps.crack_datetime (&year, &fix.time.Month, &fix.time.Day, &fix.time.Hour, &fix.time.Minute, &fix.time.Second, NULL, &age);
 	fix.time.Year = year - 1970;
 
-	time_t tt = makeTime (fix.time);
 	if (age < 600) {
-        //~ setTime (hour, minute, second, day, month, year);
+		time_t tt = makeTime (fix.time);
         setTime (tt);
         adjustTime ((timeZoneOffset + dstOffset ()) * SECS_PER_HOUR);
 	}
@@ -303,8 +306,6 @@ void logPosition () {
 		DPRINTLN (F("Skipping log, because fix unchanged"));
 	} else if (!fix.pos.valid) {
 		DPRINTLN (F("Skipping log because no fix detected"));
-	//~ } else if (fix_age > 5000) {
-		//~ Serial.println ("Warning: possible stale data!");
 	} else {
 		if (lastLogMillis == 0 || millis () - lastLogMillis >= INTx) {
 			DPRINTLN (F("Logging GPS fix"));
