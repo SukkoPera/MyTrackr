@@ -20,7 +20,7 @@ with serial.Serial (SERIAL, SPEED, timeout = TIMEOUT / 1000.0) as ser:
 		for sentence in gps.getSentences ():
 			ser.write (sentence + "\r\n")
 			now = datetime.datetime.now ()
-#			print "[%s] <-- %s" % (now, sentence)
+			print "[%s] <-- %s" % (now, sentence)
 		gps.update ()
 
 		line = ser.readline ()

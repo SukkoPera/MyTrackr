@@ -1,6 +1,6 @@
 #include "debug.h"
 
-#include <PString.h>
+//~ #include <PString.h>
 
 //~ #include <SoftwareSerial.h>
 //~ SoftwareSerial ss (7, 8);
@@ -23,6 +23,10 @@ TinyGPS gps;
 
 boolean sdAvailable = false;
 #endif
+
+#include "CSVWriter.h"
+CSVWriter writer;
+
 
 // Display
 #include "U8glib.h"
@@ -63,11 +67,13 @@ struct GpsFix {
 	Position pos;
 	ValidFloat course;		// Degrees from True North
 	ValidFloat speed;		// km/h
-	unsigned long age;
+	TimeElements time;
 	unsigned int nsats;
 };
 
 GpsFix fix;
+
+time_t lastLoggedFix;
 
 void draw () {
 	u8g.setFontPosTop ();
@@ -187,7 +193,9 @@ void setup () {
 	fix.pos.valid = false;
 	fix.course.valid = false;
 	fix.speed.valid = false;
-	fix.age = TinyGPS::GPS_INVALID_AGE;
+	//fix.age = TinyGPS::GPS_INVALID_AGE;
+	//~ fix.time = 0;
+	lastLoggedFix = -1;
 
 	// Ready!
 	pinMode (LED_BUILTIN, OUTPUT);
@@ -207,6 +215,8 @@ void loop () {
 	do {
 		draw ();
 	} while (u8g.nextPage ());
+
+	logPosition ();
 }
 
 /* This is valid for the EU, for other places see
@@ -234,8 +244,10 @@ void decodeGPS () {
 		}
 	} while (millis () - start < GPS_INTERVAL);
 
-	gps.f_get_position (&fix.pos.lat, &fix.pos.lon, &fix.age);
-	fix.pos.valid = fix.age != TinyGPS::GPS_INVALID_AGE;
+	unsigned long age;
+	gps.f_get_position (&fix.pos.lat, &fix.pos.lon, &age);
+	fix.pos.alt = gps.f_altitude ();
+	fix.pos.valid = age != TinyGPS::GPS_INVALID_AGE;
 
 	fix.course.value = gps.f_course ();
 	fix.course.valid = fix.course.value != TinyGPS::GPS_INVALID_F_ANGLE;
@@ -247,10 +259,130 @@ void decodeGPS () {
 
 	// Set the time to the latest GPS reading
 	int year;
-	byte month, day, hour, minute, second;
-	gps.crack_datetime (&year, &month, &day, &hour, &minute, &second, NULL, &fix.age);
-	if (fix.age < 600) {
-        setTime (hour, minute, second, day, month, year);
+
+	//~ byte month, day, hour, minute, second;
+	//~ gps.crack_datetime (&year, &month, &day, &hour, &minute, &second, NULL, &fix.age);
+	gps.crack_datetime (&year, &fix.time.Month, &fix.time.Day, &fix.time.Hour, &fix.time.Minute, &fix.time.Second, NULL, &age);
+	fix.time.Year = year - 1970;
+
+	time_t tt = makeTime (fix.time);
+	if (age < 600) {
+        //~ setTime (hour, minute, second, day, month, year);
+        setTime (tt);
         adjustTime ((timeZoneOffset + dstOffset ()) * SECS_PER_HOUR);
+	}
+}
+
+
+#define GPS_LOG_COLS 9
+
+/* This allows for precision to 4 inches. See here for details:
+ * http://lightmanufacturingsystems.com/heliostats/support/decimal-latitude-longitude-accuracy/
+ */
+#define LATLON_PREC 6
+
+#define INTx 20000
+
+unsigned long lastLogMillis = 0;
+
+void logPosition () {
+	// GPS Logfile
+	// Column names taken from http://www.gpsbabel.org/htmldoc-development/fmt_unicsv.html
+	static const char* cols[GPS_LOG_COLS] = {
+		"no",
+		"date",
+		"time",
+		"lat",
+		"lon",
+		"ele",
+		"speed",
+		"head",
+		"sat"
+	};
+
+	time_t tt = makeTime (fix.time);
+	if (tt == lastLoggedFix) {
+		DPRINTLN (F("Skipping log, because fix unchanged"));
+	} else if (!fix.pos.valid) {
+		DPRINTLN (F("Skipping log because no fix detected"));
+	//~ } else if (fix_age > 5000) {
+		//~ Serial.println ("Warning: possible stale data!");
+	} else {
+		if (lastLogMillis == 0 || millis () - lastLogMillis >= INTx) {
+			DPRINTLN (F("Logging GPS fix"));
+
+			if (!writer.begin ("/gps.csv", GPS_LOG_COLS, cols)) {
+				DPRINTLN (F("GPS CSV init failed"));
+			} else {
+				// Record No
+				writer.newRecord ();
+				writer.print (0);
+
+				// Date
+				writer.newField ();
+				writer.print (fix.time.Year + 1970);
+				writer.print ('/');
+				if (fix.time.Month < 10)
+					writer.print (0);
+				writer.print (fix.time.Month);
+				writer.print ('/');
+				if (fix.time.Day < 10)
+					writer.print (0);
+				writer.print (fix.time.Day);
+
+				// Time
+				writer.newField ();
+				if (fix.time.Hour < 10)
+					writer.print (0);
+				writer.print (fix.time.Hour);
+				writer.print (':');
+				if (fix.time.Minute < 10)
+					writer.print (0);
+				writer.print (fix.time.Minute);
+				writer.print (':');
+				if (fix.time.Second < 10)
+					writer.print (0);
+				writer.print (fix.time.Second);
+				//~ writer.print ('.');
+				//~ if (hundredths < 100)
+					//~ writer.print (0);
+				//~ if (hundredths < 10)
+					//~ writer.print (0);
+				//~ writer.print (hundredths);
+
+				// Latitude
+				writer.newField ();
+				writer.print (fix.pos.lat, LATLON_PREC);
+
+				// Longitude
+				writer.newField ();
+				writer.print (fix.pos.lon, LATLON_PREC);
+
+				// Altitude
+				// FIXME: Is this always valid?
+				writer.newField ();
+				writer.print (fix.pos.alt);
+
+				// Speed (knots)
+				writer.newField ();
+				if (fix.speed.valid)
+					writer.print (fix.speed.value);
+
+				// Course/Track/Heading
+				writer.newField ();
+				if (fix.course.valid)
+					writer.print (fix.course.value);
+
+				// Number of sats
+				writer.newField ();
+				writer.print (fix.nsats);
+
+				writer.end ();
+
+				lastLoggedFix = tt;
+			}
+
+			lastLogMillis = millis ();
+		}
 	}
 }
