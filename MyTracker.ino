@@ -54,7 +54,6 @@ const byte timeZoneOffset = 1;   // Central European Time
 struct Position {
 	float lat;
 	float lon;
-	float alt;		// Meters
 	boolean valid;
 };
 
@@ -65,6 +64,7 @@ struct ValidFloat {
 
 struct GpsFix {
 	Position pos;
+	ValidFloat alt;			// Meters
 	ValidFloat course;		// Degrees from True North
 	ValidFloat speed;		// km/h
 	TimeElements time;
@@ -74,6 +74,7 @@ struct GpsFix {
 GpsFix fix;
 
 time_t lastLoggedFix;
+unsigned long lastLogMillis = 0;
 
 void draw () {
 	u8g.setFontPosTop ();
@@ -191,11 +192,11 @@ void setup () {
 	DPRINTLN (TinyGPS::library_version ());
 
 	fix.pos.valid = false;
+	fix.alt.valid = false;
 	fix.course.valid = false;
 	fix.speed.valid = false;
-	//fix.age = TinyGPS::GPS_INVALID_AGE;
-	//~ fix.time = 0;
 	lastLoggedFix = -1;
+	lastLogMillis = 0;
 
 	// Ready!
 	pinMode (LED_BUILTIN, OUTPUT);
@@ -246,8 +247,10 @@ void decodeGPS () {
 
 	unsigned long age;
 	gps.f_get_position (&fix.pos.lat, &fix.pos.lon, &age);
-	fix.pos.alt = gps.f_altitude ();
 	fix.pos.valid = age != TinyGPS::GPS_INVALID_AGE;
+
+	fix.alt.value = gps.f_altitude ();
+	fix.alt.valid = fix.alt.value != TinyGPS::GPS_INVALID_F_ALTITUDE;
 
 	fix.course.value = gps.f_course ();
 	fix.course.valid = fix.course.value != TinyGPS::GPS_INVALID_F_ANGLE;
@@ -259,9 +262,6 @@ void decodeGPS () {
 
 	// Set the time to the latest GPS reading
 	int year;
-
-	//~ byte month, day, hour, minute, second;
-	//~ gps.crack_datetime (&year, &month, &day, &hour, &minute, &second, NULL, &fix.age);
 	gps.crack_datetime (&year, &fix.time.Month, &fix.time.Day, &fix.time.Hour, &fix.time.Minute, &fix.time.Second, NULL, &age);
 	fix.time.Year = year - 1970;
 
@@ -282,8 +282,6 @@ void decodeGPS () {
 #define LATLON_PREC 6
 
 #define INTx 20000
-
-unsigned long lastLogMillis = 0;
 
 void logPosition () {
 	// GPS Logfile
@@ -359,9 +357,9 @@ void logPosition () {
 				writer.print (fix.pos.lon, LATLON_PREC);
 
 				// Altitude
-				// FIXME: Is this always valid?
 				writer.newField ();
-				writer.print (fix.pos.alt);
+				if (fix.alt.valid)
+					writer.print (fix.alt.valid);
 
 				// Speed (knots)
 				writer.newField ();
