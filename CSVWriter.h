@@ -2,19 +2,16 @@
 #define FILE_H_INCLUDED
 
 #include <Arduino.h>
-#include "debug.h"
-
-#ifdef ENABLE_SD
-#include <SD.h>
-#endif
+#include <SdFat.h>
+#include "config.h"
 
 class CSVWriter: public Print {
 public:
-	boolean begin (const char* _path, int _ncols, const char* cols[]);
+	boolean begin (byte ssPin);
 
-	boolean begin (const char* _path, int _ncols);
+	boolean openFile (const char* _path, int _ncols, const char* cols[]);
 
-	boolean end ();
+	boolean endFile ();
 
 	boolean newRecord ();
 
@@ -25,6 +22,7 @@ protected:
 
 private:
 #ifdef ENABLE_SD
+	static SdFat SD;
 	File file;
 #endif
 	const char* path;

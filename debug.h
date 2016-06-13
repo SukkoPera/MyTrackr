@@ -20,16 +20,14 @@
 #ifndef _DEBUG_H_
 #define _DEBUG_H_
 
-//~ #include "common.h"
-#define ENABLE_SD
-#define SD_CHIPSELECT 4
+#include "config.h"
 
 #ifndef NDEBUG
-	#define DSTART(...) Serial.begin (9600)
+	#define DSTART(spd) do {Serial.begin (spd); delay (100);} while (0)
 	#define DPRINT(...) Serial.print(__VA_ARGS__)
 	#define DPRINTLN(...) Serial.println(__VA_ARGS__)
 #else
-	#define DSTART(...) do {} while (0)
+	#define DSTART(spd) do {} while (0)
 	#define DPRINT(...) do {} while (0)
 	#define DPRINTLN(...) do {} while (0)
 #endif

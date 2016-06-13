@@ -1,8 +1,19 @@
-#include <SD.h>
 #include "CSVWriter.h"
 #include "debug.h"
 
-boolean CSVWriter::begin (const char* _path, int _ncols, const char* cols[]) {
+#ifdef ENABLE_SD
+SdFat CSVWriter::SD;
+#endif
+
+boolean CSVWriter::begin (byte ssPin) {
+#ifdef ENABLE_SD
+	return SD.begin (ssPin);
+#else
+	return true;
+#endif
+}
+
+boolean CSVWriter::openFile (const char* _path, int _ncols, const char* cols[]) {
 	path = _path;
 	ncols = _ncols;
 
@@ -21,17 +32,13 @@ boolean CSVWriter::begin (const char* _path, int _ncols, const char* cols[]) {
 			}
 
 			print (cols[i]);
-			end ();
+			//~ endFile ();
 		}
 #ifdef ENABLE_SD
 	}
 #endif
 
 	return true;
-}
-
-boolean CSVWriter::begin (const char* _path, int _ncols) {
-	return begin (_path, _ncols, NULL);
 }
 
 size_t CSVWriter::write (uint8_t c) {
@@ -42,7 +49,7 @@ size_t CSVWriter::write (uint8_t c) {
 #endif
 }
 
-boolean CSVWriter::end () {
+boolean CSVWriter::endFile () {
 	boolean ret = true;
 
 	println ();

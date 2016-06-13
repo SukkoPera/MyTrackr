@@ -18,14 +18,10 @@ TinyGPS gps;
 // Icons
 #include "icons.h"
 
-#ifdef ENABLE_SD
-#include <SD.h>
-
-boolean sdAvailable = false;
-#endif
-
+// SD and CSV helper
 #include "CSVWriter.h"
 CSVWriter writer;
+boolean sdAvailable = false;
 
 
 // Display
@@ -178,17 +174,15 @@ void draw () {
 }
 
 void setup () {
-	DSTART ();
+	DSTART (9600);
 
 	// See if the card is present and can be initialized:
-#ifdef ENABLE_SD
-	if (!SD.begin (SD_CHIPSELECT)) {
-		DPRINTLN (F("Card failed, or not present"));
+	if (!writer.begin (SD_CHIPSELECT)) {
+		DPRINTLN (F("SD Card failed or not present"));
 	} else {
 		DPRINTLN (F("SD ok"));
 		sdAvailable = true;
 	}
-#endif
 
 	GPS_SERIAL.begin (GPS_BAUD);
 
@@ -279,13 +273,6 @@ void decodeGPS () {
 
 #define GPS_LOG_COLS 9
 
-/* This allows for precision to 4 inches. See here for details:
- * http://lightmanufacturingsystems.com/heliostats/support/decimal-latitude-longitude-accuracy/
- */
-#define LATLON_PREC 6
-
-#define INTx 20000
-
 void logPosition () {
 	// GPS Logfile
 	// Column names taken from http://www.gpsbabel.org/htmldoc-development/fmt_unicsv.html
@@ -310,7 +297,7 @@ void logPosition () {
 		if (lastLogMillis == 0 || millis () - lastLogMillis >= INTx) {
 			DPRINTLN (F("Logging GPS fix"));
 
-			if (!writer.begin ("/gps.csv", GPS_LOG_COLS, cols)) {
+			if (!writer.openFile ("/gps.csv", GPS_LOG_COLS, cols)) {
 				DPRINTLN (F("GPS CSV init failed"));
 			} else {
 				// Record No
@@ -360,7 +347,7 @@ void logPosition () {
 				// Altitude
 				writer.newField ();
 				if (fix.alt.valid)
-					writer.print (fix.alt.valid);
+					writer.print (fix.alt.value);
 
 				// Speed (knots)
 				writer.newField ();
@@ -376,7 +363,7 @@ void logPosition () {
 				writer.newField ();
 				writer.print (fix.nsats);
 
-				writer.end ();
+				writer.endFile ();
 
 				lastLoggedFix = tt;
 			}
