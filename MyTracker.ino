@@ -64,6 +64,7 @@ struct GpsFix {
 	ValidFloat alt;			// Meters
 	ValidFloat course;		// Degrees from True North
 	ValidFloat speed;		// km/h
+	ValidFloat hdop;
 	TimeElements time;
 	unsigned int nsats;
 };
@@ -193,6 +194,7 @@ void setup () {
 	fix.alt.valid = false;
 	fix.course.valid = false;
 	fix.speed.valid = false;
+	fix.hdop.valid = false;
 	lastLoggedFix = -1;
 	lastLogMillis = 0;
 
@@ -256,6 +258,9 @@ void decodeGPS () {
 	fix.speed.value = gps.f_speed_kmph ();
 	fix.speed.valid = fix.speed.value != TinyGPS::GPS_INVALID_F_SPEED;
 
+	fix.hdop.value = gps.hdop () / 100.0;
+	fix.hdop.valid = gps.hdop () != TinyGPS::GPS_INVALID_HDOP;
+
 	fix.nsats = gps.satellites () != TinyGPS::GPS_INVALID_SATELLITES ? gps.satellites () : 0;
 
 	// Set the time to the latest GPS reading
@@ -271,7 +276,7 @@ void decodeGPS () {
 }
 
 
-#define GPS_LOG_COLS 9
+#define GPS_LOG_COLS 10
 
 void logPosition () {
 	// GPS Logfile
@@ -285,6 +290,7 @@ void logPosition () {
 		"ele",
 		"speed",
 		"head",
+		"hdop",
 		"sat"
 	};
 
@@ -358,6 +364,11 @@ void logPosition () {
 				writer.newField ();
 				if (fix.course.valid)
 					writer.print (fix.course.value);
+
+				// Horizontal Dilution of Precision (HDOP)
+				writer.newField ();
+				if (fix.hdop.valid)
+					writer.print (fix.hdop.value);
 
 				// Number of sats
 				writer.newField ();
