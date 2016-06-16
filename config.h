@@ -14,4 +14,6 @@
 // Interval between two consecutive log updates
 #define INTx 15000
 
+//~ #define NDEBUG
+
 #endif

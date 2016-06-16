@@ -6,7 +6,7 @@
 //~ SoftwareSerial ss (7, 8);
 //#define GPS_SERIAL ss
 #define GPS_SERIAL Serial
-#define GPS_INTERVAL 100
+#define GPS_INTERVAL 60
 //#define GPS_BAUD 4800
 #define GPS_BAUD 9600
 
@@ -28,6 +28,8 @@ boolean sdAvailable = false;
 #include "U8glib.h"
 U8GLIB_SSD1306_128X64 u8g (U8G_I2C_OPT_DEV_0 | U8G_I2C_OPT_NO_ACK | U8G_I2C_OPT_FAST);
 
+#include "enums.h"
+
 // Time
 #include <TimeLib.h>
 
@@ -45,6 +47,16 @@ const byte timeZoneOffset = 1;   // Central European Time
 //const byte timeZoneOffset = -8;  // Pacific Standard Time (USA)
 //const byte timeZoneOffset = -7;  // Pacific Daylight Time (USA)
 
+boolean running = false;
+
+byte logFreq;
+int logDist;
+LogRotation logRot;
+
+signed char utcOffset;
+DaylightSavingMode dstMode;
+
+#include "menu.h"
 
 #define HEADER_HEIGHT 16
 
@@ -75,6 +87,10 @@ time_t lastLoggedFix;
 unsigned long lastLogMillis = 0;
 
 void draw () {
+	/***************************************************************************
+	 * Header
+	 **************************************************************************/
+
 	u8g.setFontPosTop ();
 
 	// Sat icon (Blink if fix is not valid)
@@ -88,78 +104,6 @@ void draw () {
 	u8g.setPrintPos (20, 3);
 	u8g.print (fix.nsats);
 
-	// Main
-	switch (((millis () / 1000L) / 7) % 3) {
-		case 0:
-			// Position icon
-			u8g.drawXBMP (20, 33, position_width, position_height, position_bits);
-
-			// Coordinates
-			if (fix.pos.valid) {
-				u8g.setPrintPos (52, 32);
-				u8g.print (fix.pos.lat, 6);
-				u8g.setPrintPos (52, 42);
-				u8g.print (fix.pos.lon, 6);
-			} else {
-				u8g.setPrintPos (52, 32);
-				u8g.print (F("N/A"));
-				u8g.setPrintPos (52, 42);
-				u8g.print (F("N/A"));
-			}
-			break;
-		case 1: {
-			// Compass icon
-			u8g.drawXBMP (20, 33, compass_width, compass_height, compass_bits);
-
-			u8g.setPrintPos (52, 32);
-			if (fix.course.valid) {
-				u8g.print (fix.course.value);
-				u8g.print ((char) 176);   // Degrees symbol, font-dependent
-			} else {
-				u8g.print (F("N/A"));
-			}
-
-			u8g.setPrintPos (52, 42);
-			if (fix.speed.valid) {
-				u8g.print (fix.speed.value);
-				u8g.print (F(" km/h"));
-			} else {
-				u8g.print (F("N/A"));
-			}
-			break;
-		} case 2:
-			// Clock icon
-			u8g.drawXBMP (20, 33, clock_width, clock_height, clock_bits);
-
-			if (timeStatus () != timeNotSet) {
-				u8g.setPrintPos (52, 32);
-				u8g.print (day ());
-				u8g.print ('/');
-				u8g.print (month ());
-				u8g.print ('/');
-				u8g.print (year ());
-
-				u8g.setPrintPos (52, 42);
-				if (hour () < 10)
-					u8g.print (0);
-				u8g.print (hour ());
-				u8g.print (':');
-				if (minute () < 10)
-					u8g.print (0);
-				u8g.print (minute ());
-				u8g.print (':');
-				if (second () < 10)
-					u8g.print (0);
-				u8g.print (second ());
-			} else {
-				u8g.setPrintPos (52, 32);
-				u8g.print (F("N/A"));
-				u8g.setPrintPos (52, 42);
-				u8g.print (F("N/A"));
-			}
-			break;
-	}
-
 	// SD icon (blink if SD failed)
 #ifdef ENABLE_SD
 	if (sdAvailable || ((millis () / 1000) % 2) == 0) {
@@ -172,7 +116,144 @@ void draw () {
 	u8g.drawFrame (128 - BAT_WIDTH, top, BAT_WIDTH, BAT_HEIGHT);  // Outside box
 	u8g.drawBox (128 - BAT_WIDTH - BAT_TIP, top + (BAT_HEIGHT - BAT_HEIGHT / 2) / 2, BAT_TIP, BAT_HEIGHT / 2);  // Tip
 	u8g.drawBox (128 - BAT_WIDTH + 2, top + 2, BAT_WIDTH - 4, BAT_HEIGHT - 4);  // Filling (FIXME: Make proportional to charge)
+
+
+	/***************************************************************************
+	 * Main screen
+	 **************************************************************************/
+	if (!menuHandler.show) {
+		switch (((millis () / 1000L) / 7) % 3) {
+			case 0:
+				// Position icon
+				u8g.drawXBMP (20, 33, position_width, position_height, position_bits);
+
+				// Coordinates
+				if (fix.pos.valid) {
+					u8g.setPrintPos (52, 32);
+					u8g.print (fix.pos.lat, 6);
+					u8g.setPrintPos (52, 42);
+					u8g.print (fix.pos.lon, 6);
+				} else {
+					u8g.setPrintPos (52, 32);
+					u8g.print (F("N/A"));
+					u8g.setPrintPos (52, 42);
+					u8g.print (F("N/A"));
+				}
+				break;
+			case 1: {
+				// Compass icon
+				u8g.drawXBMP (20, 33, compass_width, compass_height, compass_bits);
+
+				u8g.setPrintPos (52, 32);
+				if (fix.course.valid) {
+					u8g.print (fix.course.value);
+					u8g.print ((char) 176);   // Degrees symbol, font-dependent
+				} else {
+					u8g.print (F("N/A"));
+				}
+
+				u8g.setPrintPos (52, 42);
+				if (fix.speed.valid) {
+					u8g.print (fix.speed.value);
+					u8g.print (F(" km/h"));
+				} else {
+					u8g.print (F("N/A"));
+				}
+				break;
+			} case 2:
+				// Clock icon
+				u8g.drawXBMP (20, 33, clock_width, clock_height, clock_bits);
+
+				if (timeStatus () != timeNotSet) {
+					u8g.setPrintPos (52, 32);
+					u8g.print (day ());
+					u8g.print ('/');
+					u8g.print (month ());
+					u8g.print ('/');
+					u8g.print (year ());
+
+					u8g.setPrintPos (52, 42);
+					if (hour () < 10)
+						u8g.print (0);
+					u8g.print (hour ());
+					u8g.print (':');
+					if (minute () < 10)
+						u8g.print (0);
+					u8g.print (minute ());
+					u8g.print (':');
+					if (second () < 10)
+						u8g.print (0);
+					u8g.print (second ());
+				} else {
+					u8g.setPrintPos (52, 32);
+					u8g.print (F("N/A"));
+					u8g.setPrintPos (52, 42);
+					u8g.print (F("N/A"));
+				}
+				break;
+		}
+	}
 }
+
+
+#define KEY_NEXT_PIN A1
+#define KEY_SELECT_PIN A0
+
+uint8_t uiKeyCodeFirst = KEY_NONE;
+uint8_t uiKeyCodeSecond = KEY_NONE;
+uint8_t uiKeyCode = KEY_NONE;
+
+void uiStep(void) {
+	uiKeyCodeSecond = uiKeyCodeFirst;
+	uiKeyCodeFirst = KEY_NONE;
+	/*if ( digitalRead(uiKeyPrev) == LOW )
+		uiKeyCodeFirst = KEY_PREV;
+	else*/ if (digitalRead (KEY_NEXT_PIN) == LOW)
+		uiKeyCodeFirst = KEY_NEXT;
+	else if (digitalRead (KEY_SELECT_PIN) == LOW)
+		uiKeyCodeFirst = KEY_SELECT;
+	//~ else if ( digitalRead(uiKeyBack) == LOW )
+		//~ uiKeyCodeFirst = KEY_BACK;
+
+	if (uiKeyCodeSecond == uiKeyCodeFirst)
+		uiKeyCode = uiKeyCodeFirst;
+	else
+		uiKeyCode = KEY_NONE;
+}
+
+
+boolean menu_redraw_required = false;
+byte last_key_code = KEY_NONE;
+
+
+void updateMenu (void) {
+	if (uiKeyCode != KEY_NONE && last_key_code == uiKeyCode) {
+		return;
+	}
+	last_key_code = uiKeyCode;
+
+	if (menuHandler.show) {
+		switch (uiKeyCode) {
+			case KEY_NEXT:
+				menuHandler.next ();
+				menu_redraw_required = true;
+				break;
+			case KEY_SELECT:
+				menuHandler.activate ();
+				menu_redraw_required = true;
+				break;
+			default:
+				break;
+			//~ case KEY_PREV:
+				//~ menu_redraw_required = true;
+				//~ break;
+		}
+	} else if (uiKeyCode != KEY_NONE) {
+		menuHandler.show = true;
+		menu_redraw_required = true;
+	}
+}
+
 
 void setup () {
 	DSTART (9600);
@@ -198,6 +279,13 @@ void setup () {
 	lastLoggedFix = -1;
 	lastLogMillis = 0;
 
+	pinMode (KEY_NEXT_PIN, INPUT_PULLUP);
+	pinMode (KEY_SELECT_PIN, INPUT_PULLUP);
+	menuHandler.begin (topMenu);
+
+	menu_redraw_required = true;     // force initial redraw
+
+
 	// Ready!
 	pinMode (LED_BUILTIN, OUTPUT);
 	for (int i = 0; i < 3; i++) {
@@ -210,14 +298,17 @@ void setup () {
 
 void loop () {
 	decodeGPS ();
+	logPosition ();
+
+	uiStep ();                                // check for key press
+	updateMenu ();                            // update menu bar
 
 	// u8g Picture loop
 	u8g.firstPage ();
 	do {
 		draw ();
+		menuHandler.showMenu ();
 	} while (u8g.nextPage ());
-
-	logPosition ();
 }
 
 /* This is valid for the EU, for other places see
@@ -240,7 +331,6 @@ void decodeGPS () {
 	do {
 		while (GPS_SERIAL.available ()) {
 			char c = GPS_SERIAL.read ();
-			//DPRINT (c);
 			gps.encode (c);
 		}
 	} while (millis () - start < GPS_INTERVAL);
