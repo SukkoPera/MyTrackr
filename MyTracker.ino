@@ -1,3 +1,9 @@
+/*
+ * U8glib:
+ * Lo sketch usa 27.392 byte (84%) dello spazio disponibile per i programmi. Il massimo è 32.256 byte.
+ * Le variabili globali usano 1.430 byte (69%) di memoria dinamica, lasciando altri 618 byte liberi per le variabili locali. Il massimo è 2.048 byte.
+ */
+
 #include "debug.h"
 
 //~ #include <PString.h>
@@ -25,8 +31,11 @@ boolean sdAvailable = false;
 
 
 // Display
-#include "U8glib.h"
-U8GLIB_SSD1306_128X64 u8g (U8G_I2C_OPT_DEV_0 | U8G_I2C_OPT_NO_ACK | U8G_I2C_OPT_FAST);
+#include <Adafruit_SSD1306.h>
+Adafruit_SSD1306 display (-1);
+#if (SSD1306_LCDHEIGHT != 64)
+#error("Height incorrect, please fix Adafruit_SSD1306.h!");
+#endif
 
 // Time
 #include <TimeLib.h>
@@ -75,87 +84,88 @@ time_t lastLoggedFix;
 unsigned long lastLogMillis = 0;
 
 void draw () {
-	u8g.setFontPosTop ();
-
+  display.clearDisplay ();
+  
 	// Sat icon (Blink if fix is not valid)
 	time_t tt = makeTime (fix.time) + (timeZoneOffset + dstOffset ()) * SECS_PER_HOUR;
 	if ((fix.pos.valid && timeStatus () == timeSet && now () - tt < 10) || ((millis () / 1000) % 2) == 0) {
-		u8g.drawXBMP (0, 0, sat_width, sat_height, sat_bits);
+    display.drawXBitmap (0, 0, sat_bits, sat_width, sat_height, 1);
 	}
 
 	// Number of sats in view
-	u8g.setFont (u8g_font_6x10);
-	u8g.setPrintPos (20, 3);
-	u8g.print (fix.nsats);
+  display.setTextSize (1);
+  display.setTextColor (WHITE);
+  display.setCursor (20, 3);
+  display.print (fix.nsats);
 
 	// Main
 	switch (((millis () / 1000L) / 7) % 3) {
 		case 0:
 			// Position icon
-			u8g.drawXBMP (20, 33, position_width, position_height, position_bits);
+      display.drawXBitmap (20, 33, position_bits, position_width, position_height, 1);
 
 			// Coordinates
 			if (fix.pos.valid) {
-				u8g.setPrintPos (52, 32);
-				u8g.print (fix.pos.lat, 6);
-				u8g.setPrintPos (52, 42);
-				u8g.print (fix.pos.lon, 6);
+				display.setCursor (52, 32);
+				display.print (fix.pos.lat, 6);
+				display.setCursor (52, 42);
+				display.print (fix.pos.lon, 6);
 			} else {
-				u8g.setPrintPos (52, 32);
-				u8g.print (F("N/A"));
-				u8g.setPrintPos (52, 42);
-				u8g.print (F("N/A"));
+				display.setCursor (52, 32);
+				display.print (F("N/A"));
+				display.setCursor (52, 42);
+				display.print (F("N/A"));
 			}
 			break;
 		case 1: {
 			// Compass icon
-			u8g.drawXBMP (20, 33, compass_width, compass_height, compass_bits);
+      display.drawXBitmap (20, 33, compass_bits, compass_width, compass_height, 1);
 
-			u8g.setPrintPos (52, 32);
+			display.setCursor (52, 32);
 			if (fix.course.valid) {
-				u8g.print (fix.course.value);
-				u8g.print ((char) 176);   // Degrees symbol, font-dependent
+				display.print (fix.course.value);
+				display.print ((char) 176);   // Degrees symbol, font-dependent
 			} else {
-				u8g.print (F("N/A"));
+				display.print (F("N/A"));
 			}
 
-			u8g.setPrintPos (52, 42);
+			display.setCursor (52, 42);
 			if (fix.speed.valid) {
-				u8g.print (fix.speed.value);
-				u8g.print (F(" km/h"));
+				display.print (fix.speed.value);
+				display.print (F(" km/h"));
 			} else {
-				u8g.print (F("N/A"));
+				display.print (F("N/A"));
 			}
 			break;
 		} case 2:
 			// Clock icon
-			u8g.drawXBMP (20, 33, clock_width, clock_height, clock_bits);
+     display.drawXBitmap (20, 33, clock_bits, clock_width, clock_height, 1);
 
 			if (timeStatus () != timeNotSet) {
-				u8g.setPrintPos (52, 32);
-				u8g.print (day ());
-				u8g.print ('/');
-				u8g.print (month ());
-				u8g.print ('/');
-				u8g.print (year ());
+				display.setCursor (52, 32);
+				display.print (day ());
+				display.print ('/');
+				display.print (month ());
+				display.print ('/');
+				display.print (year ());
 
-				u8g.setPrintPos (52, 42);
+				display.setCursor (52, 42);
 				if (hour () < 10)
-					u8g.print (0);
-				u8g.print (hour ());
-				u8g.print (':');
+					display.print (0);
+				display.print (hour ());
+				display.print (':');
 				if (minute () < 10)
-					u8g.print (0);
-				u8g.print (minute ());
-				u8g.print (':');
+					display.print (0);
+				display.print (minute ());
+				display.print (':');
 				if (second () < 10)
-					u8g.print (0);
-				u8g.print (second ());
+					display.print (0);
+				display.print (second ());
 			} else {
-				u8g.setPrintPos (52, 32);
-				u8g.print (F("N/A"));
-				u8g.setPrintPos (52, 42);
-				u8g.print (F("N/A"));
+				display.setCursor (52, 32);
+				display.print (F("N/A"));
+				display.setCursor (52, 42);
+				display.print (F("N/A"));
 			}
 			break;
 	}
@@ -163,19 +173,23 @@ void draw () {
 	// SD icon (blink if SD failed)
 #ifdef ENABLE_SD
 	if (sdAvailable || ((millis () / 1000) % 2) == 0) {
-		u8g.drawXBMP (90, 0, microsd_width, microsd_height, microsd_bits);
+    display.drawXBitmap (90, 0, microsd_bits, microsd_width, microsd_height, 1);
 	}
 #endif
 
 	// Battery icon, drawn by hand
 	int top = (HEADER_HEIGHT - BAT_HEIGHT) / 2;
-	u8g.drawFrame (128 - BAT_WIDTH, top, BAT_WIDTH, BAT_HEIGHT);  // Outside box
-	u8g.drawBox (128 - BAT_WIDTH - BAT_TIP, top + (BAT_HEIGHT - BAT_HEIGHT / 2) / 2, BAT_TIP, BAT_HEIGHT / 2);  // Tip
-	u8g.drawBox (128 - BAT_WIDTH + 2, top + 2, BAT_WIDTH - 4, BAT_HEIGHT - 4);  // Filling (FIXME: Make proportional to charge)
+	display.drawRect (128 - BAT_WIDTH, top, BAT_WIDTH, BAT_HEIGHT, 1);  // Outside box
+	display.fillRect (128 - BAT_WIDTH - BAT_TIP, top + (BAT_HEIGHT - BAT_HEIGHT / 2) / 2, BAT_TIP, BAT_HEIGHT / 2, 1);  // Tip
+	display.fillRect (128 - BAT_WIDTH + 2, top + 2, BAT_WIDTH - 4, BAT_HEIGHT - 4, 1);  // Filling (FIXME: Make proportional to charge)
+
+  display.display ();
 }
 
 void setup () {
 	DSTART (9600);
+
+  display.begin (SSD1306_SWITCHCAPVCC, 0x3C);
 
 	// See if the card is present and can be initialized:
 	if (!writer.begin (SD_CHIPSELECT)) {
@@ -210,14 +224,8 @@ void setup () {
 
 void loop () {
 	decodeGPS ();
-
-	// u8g Picture loop
-	u8g.firstPage ();
-	do {
-		draw ();
-	} while (u8g.nextPage ());
-
 	logPosition ();
+  draw ();
 }
 
 /* This is valid for the EU, for other places see
