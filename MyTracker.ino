@@ -33,19 +33,6 @@ U8GLIB_SSD1306_128X64 u8g (U8G_I2C_OPT_DEV_0 | U8G_I2C_OPT_NO_ACK | U8G_I2C_OPT_
 // Time
 #include <TimeLib.h>
 
-/* Offset hours from gps time (UTC)
- * Ideally, it should be possible to learn the time zone based on the GPS
- * position data.  However, that would require a complex library, probably
- * incorporating some sort of database using Eric Muller's time zone shape maps,
- * at http://efele.net/maps/tz/
- *
- * FIXME: Put into config menu
- */
-const byte timeZoneOffset = 1;   // Central European Time
-//const byte timeZoneOffset = -5;  // Eastern Standard Time (USA)
-//const byte timeZoneOffset = -4;  // Eastern Daylight Time (USA)
-//const byte timeZoneOffset = -8;  // Pacific Standard Time (USA)
-//const byte timeZoneOffset = -7;  // Pacific Daylight Time (USA)
 
 boolean running = false;
 
@@ -54,8 +41,8 @@ byte logFreq;
 int logDist;
 LogRotation logRot;
 
-signed char utcOffset;
-DaylightSavingMode dstMode;
+signed char utcOffset = DEFAULT_TZ_OFFSET;
+DaylightSavingMode dstMode = DST_AUTO;
 
 #include "menu.h"
 
@@ -88,6 +75,8 @@ time_t lastLoggedFix;
 unsigned long lastLogMillis = 0;
 
 void draw () {
+	u8g.setDefaultForegroundColor ();
+
 	/***************************************************************************
 	 * Header
 	 **************************************************************************/
@@ -95,7 +84,7 @@ void draw () {
 	u8g.setFontPosTop ();
 
 	// Sat icon (Blink if fix is not valid)
-	time_t tt = makeTime (fix.time) + (timeZoneOffset + dstOffset ()) * SECS_PER_HOUR;
+	time_t tt = makeTime (fix.time) + (utcOffset + dstOffset ()) * SECS_PER_HOUR;
 	if ((fix.pos.valid && timeStatus () == timeSet && now () - tt < 10) || ((millis () / 1000) % 2) == 0) {
 		u8g.drawXBMP (0, 0, sat_width, sat_height, sat_bits);
 	}
@@ -312,19 +301,29 @@ void loop () {
 	} while (u8g.nextPage ());
 }
 
-/* This is valid for the EU, for other places see
- * http://www.webexhibits.org/daylightsaving/i.html
- *
- * Someone please check the formula anyway :D.
- */
 boolean dstOffset () {
-	byte d = day (), m = month (), y = year (), h = hour ();
-	if ((m == 3 && d >= (31 - (5 * y / 4 + 4) % 7) && h >= 1) ||
-	  (m > 3 && m < 10) ||
-	  (m == 10 && d <= (31 - (5 * y / 4 + 1) % 7) && h < 1))
-		return 1;
-	else
-		return 0;
+	switch (dstMode) {
+		case DST_ON:
+			return 1;
+		case DST_OFF:
+			return 0;
+		case DST_AUTO:
+		default:
+		{
+			/* This is valid for the EU, for other places see
+			 * http://www.webexhibits.org/daylightsaving/i.html
+			 *
+			 * Someone please check the implementation anyway :D.
+			 */
+			byte d = day (), m = month (), y = year (), h = hour ();
+			if ((m == 3 && d >= (31 - (5 * y / 4 + 4) % 7) && h >= 1) ||
+			  (m > 3 && m < 10) ||
+			  (m == 10 && d <= (31 - (5 * y / 4 + 1) % 7) && h < 1))
+				return 1;
+			else
+				return 0;
+		}
+	}
 }
 
 void decodeGPS () {
@@ -354,7 +353,7 @@ void decodeGPS () {
 
 	fix.nsats = gps.satellites () != TinyGPS::GPS_INVALID_SATELLITES ? gps.satellites () : 0;
 
-	// Set the time to the latest GPS reading
+	// Set the time to the latest GPS reading (which is always UTC)
 	int year;
 	gps.crack_datetime (&year, &fix.time.Month, &fix.time.Day, &fix.time.Hour, &fix.time.Minute, &fix.time.Second, NULL, &age);
 	fix.time.Year = year - 1970;
@@ -362,7 +361,9 @@ void decodeGPS () {
 	if (age < 600) {
 		time_t tt = makeTime (fix.time);
         setTime (tt);
-        adjustTime ((timeZoneOffset + dstOffset ()) * SECS_PER_HOUR);
+
+        // Convert to local time
+        adjustTime ((utcOffset + dstOffset ()) * SECS_PER_HOUR);
 	}
 }
 
