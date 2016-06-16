@@ -132,6 +132,7 @@ auto lbtop = SwitcherMenuItem ("Back", topMenu);
 auto lb = SwitcherMenuItem ("Back", subMenuLogOpts);
 
 class MenuItemLogFreq: public StaticMenuItem {
+private:
 	int freq;
 
 public:
@@ -150,6 +151,7 @@ public:
 };
 
 class MenuItemLogDist: public StaticMenuItem {
+private:
 	int dist;
 
 public:
@@ -168,6 +170,7 @@ public:
 };
 
 class MenuItemLogRot: public StaticMenuItem {
+private:
 	LogRotation rot;
 
 public:
@@ -218,6 +221,7 @@ MenuItem *subMenuLogOpts[] = {&loFreq, &loDist, &loRot, &lbtop, NULL};
 auto ltb = SwitcherMenuItem ("Back", subMenuTimeOpts);
 
 class MenuItemTimeOffset: public StaticMenuItem {
+private:
 	int offset;
 
 public:
@@ -236,6 +240,7 @@ public:
 };
 
 class MenuItemTimeDst: public StaticMenuItem {
+private:
 	DaylightSavingMode mode;
 
 public:
@@ -300,6 +305,7 @@ MenuItem *subMenuTimeOpts[] = {&toOff, &toDst, &lbtop, NULL};
  ******************************************************************************/
 
 class StartStopMenuItem: public MenuItem {
+public:
 	const char *getName (void) const override {
 		if (running)
 			return "Stop";
@@ -314,13 +320,13 @@ class StartStopMenuItem: public MenuItem {
 };
 
 class ExitMenuItem: public StaticMenuItem {
-	public:
-		ExitMenuItem (): StaticMenuItem ("Exit") {
-		}
+public:
+	ExitMenuItem (): StaticMenuItem ("Exit") {
+	}
 
-		void activate (void) override {
-			menuHandler.show = false;
-		}
+	void activate (void) override {
+		menuHandler.show = false;
+	}
 };
 
 auto ss = StartStopMenuItem ();
