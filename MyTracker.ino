@@ -34,7 +34,7 @@ U8GLIB_SSD1306_128X64 u8g (U8G_I2C_OPT_DEV_0 | U8G_I2C_OPT_NO_ACK | U8G_I2C_OPT_
 #include <TimeLib.h>
 
 
-boolean running = false;
+boolean logEnabled = false;
 
 // Interval between two consecutive log updates
 byte logFreq;
@@ -193,7 +193,7 @@ uint8_t uiKeyCodeFirst = KEY_NONE;
 uint8_t uiKeyCodeSecond = KEY_NONE;
 uint8_t uiKeyCode = KEY_NONE;
 
-void uiStep(void) {
+void uiStep (void) {
 	uiKeyCodeSecond = uiKeyCodeFirst;
 	uiKeyCodeFirst = KEY_NONE;
 	/*if ( digitalRead(uiKeyPrev) == LOW )
@@ -386,92 +386,94 @@ void logPosition () {
 		"sat"
 	};
 
-	time_t tt = makeTime (fix.time);
-	if (tt == lastLoggedFix) {
-		DPRINTLN (F("Skipping log, because fix unchanged"));
-	} else if (!fix.pos.valid) {
-		DPRINTLN (F("Skipping log because no fix detected"));
-	} else {
-		if (lastLogMillis == 0 || millis () - lastLogMillis >= INTx) {
-			DPRINTLN (F("Logging GPS fix"));
+	if (logEnabled) {
+		time_t tt = makeTime (fix.time);
+		if (tt == lastLoggedFix) {
+			DPRINTLN (F("Skipping log, because fix unchanged"));
+		} else if (!fix.pos.valid) {
+			DPRINTLN (F("Skipping log because no fix detected"));
+		} else {
+			if (lastLogMillis == 0 || millis () - lastLogMillis >= INTx) {
+				DPRINTLN (F("Logging GPS fix"));
 
-			if (!writer.openFile ("/gps.csv", GPS_LOG_COLS, cols)) {
-				DPRINTLN (F("GPS CSV init failed"));
-			} else {
-				// Record No
-				writer.newRecord ();
-				writer.print (0);
-
-				// Date
-				writer.newField ();
-				writer.print (fix.time.Year + 1970);
-				writer.print ('/');
-				if (fix.time.Month < 10)
+				if (!writer.openFile ("/gps.csv", GPS_LOG_COLS, cols)) {
+					DPRINTLN (F("GPS CSV init failed"));
+				} else {
+					// Record No
+					writer.newRecord ();
 					writer.print (0);
-				writer.print (fix.time.Month);
-				writer.print ('/');
-				if (fix.time.Day < 10)
-					writer.print (0);
-				writer.print (fix.time.Day);
 
-				// Time
-				writer.newField ();
-				if (fix.time.Hour < 10)
-					writer.print (0);
-				writer.print (fix.time.Hour);
-				writer.print (':');
-				if (fix.time.Minute < 10)
-					writer.print (0);
-				writer.print (fix.time.Minute);
-				writer.print (':');
-				if (fix.time.Second < 10)
-					writer.print (0);
-				writer.print (fix.time.Second);
-				//~ writer.print ('.');
-				//~ if (hundredths < 100)
-					//~ writer.print (0);
-				//~ if (hundredths < 10)
-					//~ writer.print (0);
-				//~ writer.print (hundredths);
+					// Date
+					writer.newField ();
+					writer.print (fix.time.Year + 1970);
+					writer.print ('/');
+					if (fix.time.Month < 10)
+						writer.print (0);
+					writer.print (fix.time.Month);
+					writer.print ('/');
+					if (fix.time.Day < 10)
+						writer.print (0);
+					writer.print (fix.time.Day);
 
-				// Latitude
-				writer.newField ();
-				writer.print (fix.pos.lat, LATLON_PREC);
+					// Time
+					writer.newField ();
+					if (fix.time.Hour < 10)
+						writer.print (0);
+					writer.print (fix.time.Hour);
+					writer.print (':');
+					if (fix.time.Minute < 10)
+						writer.print (0);
+					writer.print (fix.time.Minute);
+					writer.print (':');
+					if (fix.time.Second < 10)
+						writer.print (0);
+					writer.print (fix.time.Second);
+					//~ writer.print ('.');
+					//~ if (hundredths < 100)
+						//~ writer.print (0);
+					//~ if (hundredths < 10)
+						//~ writer.print (0);
+					//~ writer.print (hundredths);
 
-				// Longitude
-				writer.newField ();
-				writer.print (fix.pos.lon, LATLON_PREC);
+					// Latitude
+					writer.newField ();
+					writer.print (fix.pos.lat, LATLON_PREC);
 
-				// Altitude
-				writer.newField ();
-				if (fix.alt.valid)
-					writer.print (fix.alt.value);
+					// Longitude
+					writer.newField ();
+					writer.print (fix.pos.lon, LATLON_PREC);
 
-				// Speed (knots)
-				writer.newField ();
-				if (fix.speed.valid)
-					writer.print (fix.speed.value);
+					// Altitude
+					writer.newField ();
+					if (fix.alt.valid)
+						writer.print (fix.alt.value);
 
-				// Course/Track/Heading
-				writer.newField ();
-				if (fix.course.valid)
-					writer.print (fix.course.value);
+					// Speed (knots)
+					writer.newField ();
+					if (fix.speed.valid)
+						writer.print (fix.speed.value);
 
-				// Horizontal Dilution of Precision (HDOP)
-				writer.newField ();
-				if (fix.hdop.valid)
-					writer.print (fix.hdop.value);
+					// Course/Track/Heading
+					writer.newField ();
+					if (fix.course.valid)
+						writer.print (fix.course.value);
 
-				// Number of sats
-				writer.newField ();
-				writer.print (fix.nsats);
+					// Horizontal Dilution of Precision (HDOP)
+					writer.newField ();
+					if (fix.hdop.valid)
+						writer.print (fix.hdop.value);
 
-				writer.endFile ();
+					// Number of sats
+					writer.newField ();
+					writer.print (fix.nsats);
 
-				lastLoggedFix = tt;
+					writer.endFile ();
+
+					lastLoggedFix = tt;
+				}
+
+				lastLogMillis = millis ();
 			}
-
-			lastLogMillis = millis ();
 		}
 	}
 }

@@ -181,7 +181,7 @@ public:
 		logRot = rot;
 
 		DPRINT (F("Log Rotation is now "));
-		DPRINT (logRot);
+		DPRINTLN (logRot);
 
 		lb.activate ();
 	}
@@ -251,7 +251,7 @@ public:
 		dstMode = mode;
 
 		DPRINT (F("DST mode is now "));
-		DPRINT (dstMode);
+		DPRINTLN (dstMode);
 
 		ltb.activate ();
 	}
@@ -307,15 +307,17 @@ MenuItem *subMenuTimeOpts[] = {&toOff, &toDst, &lbtop, NULL};
 class StartStopMenuItem: public MenuItem {
 public:
 	const char *getName (void) const override {
-		if (running)
+		if (logEnabled)
 			return "Stop";
 		else
 			return "Start";
 	}
 
 	void activate (void) override {
-		running = !running;
-//    mvprintw (23, 0, "Logging is now %s", running ? "ON" : "OFF");
+		logEnabled = !logEnabled;
+
+		DPRINT (F("Logging is now "));
+		DPRINTLN (logEnabled ? F("ON") : F("OFF"));
 	}
 };
 
