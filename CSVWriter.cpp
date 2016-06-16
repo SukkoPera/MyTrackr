@@ -76,8 +76,10 @@ boolean CSVWriter::newRecord () {
 			ret = false;
 		}
 	} else {
+#endif
 		// File is already open, prepare for new record
 		println ();
+#ifdef ENABLE_SD
 	}
 #endif
 
