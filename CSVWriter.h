@@ -2,8 +2,11 @@
 #define FILE_H_INCLUDED
 
 #include <Arduino.h>
-#include <SdFat.h>
 #include "config.h"
+
+#ifdef ENABLE_SD
+#include <SdFat.h>
+#endif
 
 class CSVWriter: public Print {
 public:
