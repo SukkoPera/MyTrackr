@@ -49,6 +49,7 @@ const byte timeZoneOffset = 1;   // Central European Time
 
 boolean running = false;
 
+// Interval between two consecutive log updates
 byte logFreq;
 int logDist;
 LogRotation logRot;
@@ -281,7 +282,7 @@ void setup () {
 
 	pinMode (KEY_NEXT_PIN, INPUT_PULLUP);
 	pinMode (KEY_SELECT_PIN, INPUT_PULLUP);
-	menuHandler.begin (topMenu);
+	menuHandler.begin (topMenu, MENU_LINES);
 
 	menu_redraw_required = true;     // force initial redraw
 
@@ -307,7 +308,7 @@ void loop () {
 	u8g.firstPage ();
 	do {
 		draw ();
-		menuHandler.showMenu ();
+		menuHandler.draw ();
 	} while (u8g.nextPage ());
 }
 
