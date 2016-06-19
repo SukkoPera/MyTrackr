@@ -14,6 +14,9 @@
  */
 #define LATLON_PREC 6
 
+// Default logging interval (sec)
+#define DEFAULT_LOG_INTERVAL 10
+
 /* Default offset hours from gps time (UTC).
  * Ideally, it should be possible to learn the time zone based on the GPS
  * position data.  However, that would require a complex library, probably
@@ -27,9 +30,6 @@
 /* Number of lines on screen to use for the menu. Font-size dependent
  */
 #define MENU_LINES 5
-
-// FIXME: Remove
-#define INTx 15000
 
 /* DEFINE this to DISABLE debug messages
  */

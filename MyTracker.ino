@@ -37,7 +37,7 @@ U8GLIB_SSD1306_128X64 u8g (U8G_I2C_OPT_DEV_0 | U8G_I2C_OPT_NO_ACK | U8G_I2C_OPT_
 boolean logEnabled = false;
 
 // Interval between two consecutive log updates
-byte logFreq;
+byte logFreq = DEFAULT_LOG_INTERVAL;
 int logDist;
 LogRotation logRot;
 
@@ -395,7 +395,7 @@ void logPosition () {
 		} else if (!fix.pos.valid) {
 			DPRINTLN (F("Skipping log because no fix detected"));
 		} else {
-			if (lastLogMillis == 0 || millis () - lastLogMillis >= INTx) {
+			if (lastLogMillis == 0 || millis () - lastLogMillis >= logFreq * 1000UL) {
 				DPRINTLN (F("Logging GPS fix"));
 
 				if (!writer.openFile ("/gps.csv", GPS_LOG_COLS, cols)) {
