@@ -4,7 +4,7 @@
 /* Define to actually enable SD support. If disabled logging will be redirected
  * to the serial monitor. Useful fo debugging.
  */
-//~ #define ENABLE_SD
+#define ENABLE_SD
 #define SD_CHIPSELECT 4
 
 /* Number of decimal digits to use when logging latitude and longitude.
