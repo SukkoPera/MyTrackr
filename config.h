@@ -31,6 +31,12 @@
  */
 #define MENU_LINES 5
 
+// Pins keys are connected to. PREV can also be left undefined.
+//~ #define KEY_PREV_PIN A2
+#define KEY_NEXT_PIN A1
+#define KEY_SELECT_PIN A0
+
+
 /* DEFINE this to DISABLE debug messages
  */
 //~ #define NDEBUG

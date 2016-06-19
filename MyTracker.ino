@@ -185,36 +185,29 @@ void draw () {
 	}
 }
 
+Key readKeys (void) {
+	Key uiKeyCode = KEY_NONE;
 
-#define KEY_NEXT_PIN A1
-#define KEY_SELECT_PIN A0
-
-uint8_t uiKeyCodeFirst = KEY_NONE;
-uint8_t uiKeyCodeSecond = KEY_NONE;
-uint8_t uiKeyCode = KEY_NONE;
-
-void uiStep (void) {
-	uiKeyCodeSecond = uiKeyCodeFirst;
-	uiKeyCodeFirst = KEY_NONE;
-	/*if ( digitalRead(uiKeyPrev) == LOW )
-		uiKeyCodeFirst = KEY_PREV;
-	else*/ if (digitalRead (KEY_NEXT_PIN) == LOW)
-		uiKeyCodeFirst = KEY_NEXT;
+	if (digitalRead (KEY_NEXT_PIN) == LOW)
+		uiKeyCode = KEY_NEXT;
 	else if (digitalRead (KEY_SELECT_PIN) == LOW)
-		uiKeyCodeFirst = KEY_SELECT;
+		uiKeyCode = KEY_SELECT;
+#ifdef KEY_PREV_PIN
+	else if (digitalRead (KEY_PREV_PIN) == LOW)
+		uiKeyCode = KEY_PREV;
+#endif
 	//~ else if ( digitalRead(uiKeyBack) == LOW )
-		//~ uiKeyCodeFirst = KEY_BACK;
+		//~ uiKeyCode = KEY_BACK;
 
-	if (uiKeyCodeSecond == uiKeyCodeFirst)
-		uiKeyCode = uiKeyCodeFirst;
-	else
-		uiKeyCode = KEY_NONE;
+	return uiKeyCode;
 }
 
 byte last_key_code = KEY_NONE;
 
 
 void updateMenu (void) {
+	// Avoid repeated presses
+	Key uiKeyCode = readKeys ();
 	if (uiKeyCode != KEY_NONE && last_key_code == uiKeyCode) {
 		return;
 	}
@@ -225,14 +218,16 @@ void updateMenu (void) {
 			case KEY_NEXT:
 				menuHandler.next ();
 				break;
+#ifdef KEY_PREV_PIN
+			case KEY_PREV:
+				menuHandler.prev ();
+				break;
+#endif
 			case KEY_SELECT:
 				menuHandler.activate ();
 				break;
 			default:
 				break;
-			//~ case KEY_PREV:
-				//~ menu_redraw_required = true;
-				//~ break;
 		}
 	} else if (uiKeyCode != KEY_NONE) {
 		menuHandler.show ();
@@ -273,8 +268,7 @@ void loop () {
 	decodeGPS ();
 	logPosition ();
 
-	uiStep ();                                // check for key press
-	updateMenu ();                            // update menu bar
+	updateMenu ();
 
 	// u8g Picture loop
 	u8g.firstPage ();
