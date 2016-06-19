@@ -14,7 +14,7 @@ public:
 	}
 };
 
-typedef MenuItem** Menu;
+typedef MenuItem* const * Menu;
 
 /******************************************************************************/
 
@@ -64,8 +64,9 @@ public:
 
 			byte h = u8g.getFontAscent () - u8g.getFontDescent ();
 			byte w = u8g.getWidth ();
-			for (byte i = 0; cur[i] && i < nLines; i++) {
-				byte d = (w - u8g.getStrWidth (cur[firstItem + i] -> getName ())) / 2;
+			MenuItem *item = NULL;
+			for (byte i = 0; i < nLines && (item = reinterpret_cast<MenuItem *> (pgm_read_word (&(cur[firstItem + i])))); i++) {
+				byte d = (w - u8g.getStrWidth (item -> getName ())) / 2;
 				u8g.setDefaultForegroundColor ();
 
 				if (firstItem + i == curItem) {
@@ -73,7 +74,7 @@ public:
 					u8g.setDefaultBackgroundColor ();
 				}
 
-				u8g.drawStr (d, 16 + i * h, cur[firstItem + i] -> getName ());
+				u8g.drawStr (d, 16 + i * h, item -> getName ());
 			}
 		}
 	}
@@ -81,7 +82,7 @@ public:
 	void prev () {
 		if (curItem-- < 1) {
 			byte i;
-			for (i = 0; cur[i]; i++)
+			for (i = 0; pgm_read_word (&(cur[i])); i++)
 				;
 			curItem = i - 1;
 
@@ -95,7 +96,8 @@ public:
 	}
 
 	void next () {
-		if (!cur[++curItem]) {
+		MenuItem *item = reinterpret_cast<MenuItem *> (pgm_read_word (&(cur[++curItem])));
+		if (!item) {
 			curItem = 0;
 			firstItem = 0;
 		} else if (curItem >= firstItem + nLines)
@@ -103,7 +105,8 @@ public:
 	}
 
 	void activate () {
-		cur[curItem] -> activate ();
+		MenuItem *item = reinterpret_cast<MenuItem *> (pgm_read_word (&(cur[curItem])));
+		item -> activate ();
 	}
 };
 

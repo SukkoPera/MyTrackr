@@ -18,7 +18,7 @@ public:
 /******************************************************************************/
 
 // Forward declarations
-extern MenuItem *topMenu[], *subMenuLogOpts[], *subMenuTimeOpts[];
+extern MenuItem * const topMenu[] PROGMEM, * const subMenuLogOpts[] PROGMEM, * const subMenuTimeOpts[] PROGMEM;
 
 // Item to get back to main menu
 const char mlBack[] PROGMEM = "Back";
@@ -97,7 +97,7 @@ const char mlf30[] PROGMEM = "30 seconds";
 MenuItemLogFreq lf30 (mlf30, 30);
 const char mlf60[] PROGMEM = "1 minute";
 MenuItemLogFreq lf60 (mlf60, 60);
-MenuItem *subMenuLogFreq[] = {&lf1, &lf5, &lf10, &lf30, &lf60, &lb, NULL};
+MenuItem * const subMenuLogFreq[] PROGMEM = {&lf1, &lf5, &lf10, &lf30, &lf60, &lb, NULL};
 
 const char mlOff[] PROGMEM = "Off";
 MenuItemLogDist ldOff (mlOff, 0);
@@ -109,7 +109,7 @@ const char ml250[] PROGMEM = "250 m";
 MenuItemLogDist ld250 (ml250, 250);
 const char ml1000[] PROGMEM = "1 km";
 MenuItemLogDist ld1000 (ml1000, 1000);
-MenuItem *subMenuLogDist[] = {&ldOff, &ld10, &ld100, &ld250, &ld1000, &lb, NULL};
+MenuItem * const subMenuLogDist[] PROGMEM = {&ldOff, &ld10, &ld100, &ld250, &ld1000, &lb, NULL};
 
 MenuItemLogRot lrOff (mlOff, LOGROT_OFF);
 const char mlH[] PROGMEM = "Hourly";
@@ -120,7 +120,7 @@ const char mlW[] PROGMEM = "Weekly";
 MenuItemLogRot lrW (mlW, LOGROT_WEEKLY);
 const char mlM[] PROGMEM = "Monthly";
 MenuItemLogRot lrM (mlM, LOGROT_MONTHLY);
-MenuItem *subMenuLogRot[] = {&lrOff, &lrH, &lrD, &lrW, &lrM, &lb, NULL};
+MenuItem * const subMenuLogRot[] PROGMEM = {&lrOff, &lrH, &lrD, &lrW, &lrM, &lb, NULL};
 
 const char mlFreq[] PROGMEM = "Frequency";
 SwitcherMenuItem loFreq (mlFreq, subMenuLogFreq);
@@ -128,14 +128,14 @@ const char mlDist[] PROGMEM = "Distance";
 SwitcherMenuItem loDist (mlDist, subMenuLogDist);
 const char mlRot[] PROGMEM = "Rotation";
 SwitcherMenuItem loRot (mlRot, subMenuLogRot);
-MenuItem *subMenuLogOpts[] = {&loFreq, &loDist, &loRot, &lbtop, NULL};
+MenuItem * const subMenuLogOpts[] PROGMEM = {&loFreq, &loDist, &loRot, &lbtop, NULL};
 
 
 /*******************************************************************************
  * Time Options Menu
  ******************************************************************************/
 
-auto ltb = SwitcherMenuItem (mlBack, subMenuTimeOpts);
+SwitcherMenuItem ltb (mlBack, subMenuTimeOpts);
 
 class MenuItemTimeOffset: public StaticMenuItem {
 private:
@@ -179,7 +179,7 @@ MenuItemTimeDst da (mlAuto, DST_AUTO);
 const char mlOn[] PROGMEM = "On";
 MenuItemTimeDst don (mlOn, DST_ON);
 MenuItemTimeDst doff (mlOff, DST_OFF);
-MenuItem *subMenuDstMode[] = {&da, &don, &doff, &ltb, NULL};
+MenuItem * const subMenuDstMode[] PROGMEM = {&da, &don, &doff, &ltb, NULL};
 
 const char mlOm12[] PROGMEM = "-12";
 MenuItemTimeOffset om12 (mlOm12, -12);
@@ -231,7 +231,7 @@ const char mlOp11[] PROGMEM = "+11";
 MenuItemTimeOffset op11 (mlOp11, +11);
 const char mlOp12[] PROGMEM = "+12";
 MenuItemTimeOffset op12 (mlOp12, +12);
-MenuItem *subMenuUtcOffset[] = {
+MenuItem * const subMenuUtcOffset[] PROGMEM = {
 	&om12, &om11, &om10, &om9, &om8, &om7, &om6, &om5, &om4, &om3, &om2, &om1,
 	&o0,
 	&op1, &op2, &op3, &op4, &op5, &op6, &op7, &op8, &op9, &op10, &op11, &op12,
@@ -243,7 +243,7 @@ const char mlUtcOffset[] PROGMEM = "UTC Offset";
 SwitcherMenuItem toOff (mlUtcOffset, subMenuUtcOffset);
 const char mlDst[] PROGMEM = "Daylight Saving";
 SwitcherMenuItem toDst (mlDst, subMenuDstMode);
-MenuItem *subMenuTimeOpts[] = {&toOff, &toDst, &lbtop, NULL};
+MenuItem * const subMenuTimeOpts[] PROGMEM = {&toOff, &toDst, &lbtop, NULL};
 
 
 /*******************************************************************************
@@ -283,4 +283,4 @@ SwitcherMenuItem lo (mlLogOpts, subMenuLogOpts);
 const char mlTimeOpts[] PROGMEM = "Time Options";
 SwitcherMenuItem to (mlTimeOpts, subMenuTimeOpts);
 ExitMenuItem ex;
-MenuItem *topMenu[] = {&ss, &lo, &to, &ex, NULL};
+MenuItem * const topMenu[] PROGMEM = {&ss, &lo, &to, &ex, NULL};
