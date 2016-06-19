@@ -1,6 +1,10 @@
+#define PSTR_TO_F(s) reinterpret_cast<const __FlashStringHelper *> (s)
+#define F_TO_PSTR(s) reinterpret_cast<PGM_P> (s)
+#define FlashString const __FlashStringHelper *
+
 class MenuItem {
 public:
-	virtual const char *getName (void) const = 0;
+	virtual FlashString getName (void) const = 0;
 
 	virtual void activate (void) {
 	}
@@ -10,12 +14,12 @@ typedef MenuItem** Menu;
 
 class StaticMenuItem: public MenuItem {
 public:
-	const char* name;
+	FlashString name;
 
-	StaticMenuItem (const char* _name): name (_name) {
+	StaticMenuItem (PGM_P _name): name (PSTR_TO_F (_name)) {
 	}
 
-	const char* getName (void) const override {
+	FlashString getName (void) const override {
 		return name;
 	}
 };
@@ -67,7 +71,7 @@ public:
 
 	void prev () {
 		if (curItem-- < 1) {
-			size_t i;
+			byte i;
 			for (i = 0; cur[i]; i++)
 				;
 			curItem = i - 1;
@@ -106,7 +110,7 @@ private:
 	Menu menu;
 
 public:
-	SwitcherMenuItem (const char* _name, const Menu& _m): StaticMenuItem (_name), menu (_m) {
+	SwitcherMenuItem (PGM_P _name, const Menu& _m): StaticMenuItem (_name), menu (_m) {
 	}
 
 	void activate (void) override {
@@ -116,27 +120,25 @@ public:
 
 /******************************************************************************/
 
-
-
 // Forward declarations
 extern MenuItem *topMenu[], *subMenuLogOpts[], *subMenuTimeOpts[];
 
 // Item to get back to main menu
-auto lbtop = SwitcherMenuItem ("Back", topMenu);
-
+const char mlBack[] PROGMEM = "Back";
+auto lbtop = SwitcherMenuItem (mlBack, topMenu);
 
 /*******************************************************************************
  * Log Options Menu
  ******************************************************************************/
 
-auto lb = SwitcherMenuItem ("Back", subMenuLogOpts);
+auto lb = SwitcherMenuItem (mlBack, subMenuLogOpts);
 
 class MenuItemLogFreq: public StaticMenuItem {
 private:
 	int freq;
 
 public:
-	MenuItemLogFreq (const char* name, int f): StaticMenuItem (name), freq (f) {
+	MenuItemLogFreq (PGM_P name, int f): StaticMenuItem (name), freq (f) {
 	}
 
 	void activate () override {
@@ -155,7 +157,7 @@ private:
 	int dist;
 
 public:
-	MenuItemLogDist (const char* name, int d): StaticMenuItem (name), dist (d) {
+	MenuItemLogDist (PGM_P name, int d): StaticMenuItem (name), dist (d) {
 	}
 
 	void activate () override {
@@ -174,7 +176,7 @@ private:
 	LogRotation rot;
 
 public:
-	MenuItemLogRot (const char* name, LogRotation r): StaticMenuItem (name), rot (r) {
+	MenuItemLogRot (PGM_P name, LogRotation r): StaticMenuItem (name), rot (r) {
 	}
 
 	void activate () override {
@@ -187,30 +189,47 @@ public:
 	}
 };
 
-auto lf0 = MenuItemLogFreq ("1 second", 1);
-auto lf1 = MenuItemLogFreq ("5 seconds", 5);
-auto lf2 = MenuItemLogFreq ("10 seconds", 10);
-auto lf3 = MenuItemLogFreq ("30 seconds", 30);
-auto lf4 = MenuItemLogFreq ("60 seconds", 60);
-MenuItem *subMenuLogFreq[] = {&lf0, &lf1, &lf2, &lf3, &lf4, &lb, NULL};
+const char mlf1[] PROGMEM = "1 second";
+auto lf1 = MenuItemLogFreq (mlf1, 1);
+const char mlf5[] PROGMEM = "5 seconds";
+auto lf5 = MenuItemLogFreq (mlf5, 5);
+const char mlf10[] PROGMEM = "10 seconds";
+auto lf10 = MenuItemLogFreq (mlf10, 10);
+const char mlf30[] PROGMEM = "30 seconds";
+auto lf30 = MenuItemLogFreq (mlf30, 30);
+const char mlf60[] PROGMEM = "1 minute";
+auto lf60 = MenuItemLogFreq (mlf60, 60);
+MenuItem *subMenuLogFreq[] = {&lf1, &lf5, &lf10, &lf30, &lf60, &lb, NULL};
 
-auto ldOff = MenuItemLogDist ("Off", 0);
-auto ld10 = MenuItemLogDist ("10 m", 10);
-auto ld100 = MenuItemLogDist ("100 m", 100);
-auto ld250 = MenuItemLogDist ("250 m", 250);
-auto ld1000 = MenuItemLogDist ("1 km", 1000);
+const char mlOff[] PROGMEM = "Off";
+auto ldOff = MenuItemLogDist (mlOff, 0);
+const char ml10[] PROGMEM = "10 m";
+auto ld10 = MenuItemLogDist (ml10, 10);
+const char ml100[] PROGMEM = "100 m";
+auto ld100 = MenuItemLogDist (ml100, 100);
+const char ml250[] PROGMEM = "250 m";
+auto ld250 = MenuItemLogDist (ml250, 250);
+const char ml1000[] PROGMEM = "1 km";
+auto ld1000 = MenuItemLogDist (ml1000, 1000);
 MenuItem *subMenuLogDist[] = {&ldOff, &ld10, &ld100, &ld250, &ld1000, &lb, NULL};
 
-auto lrOff = MenuItemLogRot ("Off", LOGROT_OFF);
-auto lrH = MenuItemLogRot ("Hourly", LOGROT_HOURLY);
-auto lrD = MenuItemLogRot ("Daily", LOGROT_DAILY);
-auto lrW = MenuItemLogRot ("Weekly", LOGROT_WEEKLY);
-auto lrM = MenuItemLogRot ("Monthly", LOGROT_MONTHLY);
+auto lrOff = MenuItemLogRot (mlOff, LOGROT_OFF);
+const char mlH[] PROGMEM = "Hourly";
+auto lrH = MenuItemLogRot (mlH, LOGROT_HOURLY);
+const char mlD[] PROGMEM = "Daily";
+auto lrD = MenuItemLogRot (mlD, LOGROT_DAILY);
+const char mlW[] PROGMEM = "Weekly";
+auto lrW = MenuItemLogRot (mlW, LOGROT_WEEKLY);
+const char mlM[] PROGMEM = "Monthly";
+auto lrM = MenuItemLogRot (mlM, LOGROT_MONTHLY);
 MenuItem *subMenuLogRot[] = {&lrOff, &lrH, &lrD, &lrW, &lrM, &lb, NULL};
 
-auto loFreq = SwitcherMenuItem ("Frequency", subMenuLogFreq);
-auto loDist = SwitcherMenuItem ("Distance", subMenuLogDist);
-auto loRot = SwitcherMenuItem ("Rotation", subMenuLogRot);
+const char mlFreq[] PROGMEM = "Frequency";
+auto loFreq = SwitcherMenuItem (mlFreq, subMenuLogFreq);
+const char mlDist[] PROGMEM = "Distance";
+auto loDist = SwitcherMenuItem (mlDist, subMenuLogDist);
+const char mlRot[] PROGMEM = "Rotation";
+auto loRot = SwitcherMenuItem (mlRot, subMenuLogRot);
 MenuItem *subMenuLogOpts[] = {&loFreq, &loDist, &loRot, &lbtop, NULL};
 
 
@@ -218,14 +237,14 @@ MenuItem *subMenuLogOpts[] = {&loFreq, &loDist, &loRot, &lbtop, NULL};
  * Time Options Menu
  ******************************************************************************/
 
-auto ltb = SwitcherMenuItem ("Back", subMenuTimeOpts);
+auto ltb = SwitcherMenuItem (mlBack, subMenuTimeOpts);
 
 class MenuItemTimeOffset: public StaticMenuItem {
 private:
 	int offset;
 
 public:
-	MenuItemTimeOffset (const char* name, int o): StaticMenuItem (name), offset (o) {
+	MenuItemTimeOffset (PGM_P name, int o): StaticMenuItem (name), offset (o) {
 	}
 
 	void activate () override {
@@ -244,7 +263,7 @@ private:
 	DaylightSavingMode mode;
 
 public:
-	MenuItemTimeDst (const char* name, DaylightSavingMode m): StaticMenuItem (name), mode (m) {
+	MenuItemTimeDst (PGM_P name, DaylightSavingMode m): StaticMenuItem (name), mode (m) {
 	}
 
 	void activate () override {
@@ -257,36 +276,63 @@ public:
 	}
 };
 
-auto da = MenuItemTimeDst ("Auto", DST_AUTO);
-auto don = MenuItemTimeDst ("On", DST_ON);
-auto doff = MenuItemTimeDst ("Off", DST_OFF);
+const char mlAuto[] PROGMEM = "Auto";
+auto da = MenuItemTimeDst (mlAuto, DST_AUTO);
+const char mlOn[] PROGMEM = "On";
+auto don = MenuItemTimeDst (mlOn, DST_ON);
+auto doff = MenuItemTimeDst (mlOff, DST_OFF);
 MenuItem *subMenuDstMode[] = {&da, &don, &doff, &ltb, NULL};
 
-auto om12 = MenuItemTimeOffset ("-12", -12);
-auto om11 = MenuItemTimeOffset ("-11", -11);
-auto om10 = MenuItemTimeOffset ("-10", -10);
-auto om9 = MenuItemTimeOffset ("-9", -9);
-auto om8 = MenuItemTimeOffset ("-8", -8);
-auto om7 = MenuItemTimeOffset ("-7", -7);
-auto om6 = MenuItemTimeOffset ("-6", -6);
-auto om5 = MenuItemTimeOffset ("-5", -5);
-auto om4 = MenuItemTimeOffset ("-4", -4);
-auto om3 = MenuItemTimeOffset ("-3", -3);
-auto om2 = MenuItemTimeOffset ("-2", -2);
-auto om1 = MenuItemTimeOffset ("-1", -1);
-auto o0 = MenuItemTimeOffset ("0", 0);
-auto op1 = MenuItemTimeOffset ("+1", +1);
-auto op2 = MenuItemTimeOffset ("+2", +2);
-auto op3 = MenuItemTimeOffset ("+3", +3);
-auto op4 = MenuItemTimeOffset ("+4", +4);
-auto op5 = MenuItemTimeOffset ("+5", +5);
-auto op6 = MenuItemTimeOffset ("+6", +6);
-auto op7 = MenuItemTimeOffset ("+7", +7);
-auto op8 = MenuItemTimeOffset ("+8", +8);
-auto op9 = MenuItemTimeOffset ("+9", +9);
-auto op10 = MenuItemTimeOffset ("+10", +10);
-auto op11 = MenuItemTimeOffset ("+11", +11);
-auto op12 = MenuItemTimeOffset ("+12", +12);
+const char mlOm12[] PROGMEM = "-12";
+auto om12 = MenuItemTimeOffset (mlOm12, -12);
+const char mlOm11[] PROGMEM = "-11";
+auto om11 = MenuItemTimeOffset (mlOm11, -11);
+const char mlOm10[] PROGMEM = "-10";
+auto om10 = MenuItemTimeOffset (mlOm10, -10);
+const char mlOm9[] PROGMEM = "-9";
+auto om9 = MenuItemTimeOffset (mlOm9, -9);
+const char mlOm8[] PROGMEM = "-8";
+auto om8 = MenuItemTimeOffset (mlOm8, -8);
+const char mlOm7[] PROGMEM = "-7";
+auto om7 = MenuItemTimeOffset (mlOm7, -7);
+const char mlOm6[] PROGMEM = "-6";
+auto om6 = MenuItemTimeOffset (mlOm6, -6);
+const char mlOm5[] PROGMEM = "-5";
+auto om5 = MenuItemTimeOffset (mlOm5, -5);
+const char mlOm4[] PROGMEM = "-4";
+auto om4 = MenuItemTimeOffset (mlOm4, -4);
+const char mlOm3[] PROGMEM = "-3";
+auto om3 = MenuItemTimeOffset (mlOm3, -3);
+const char mlOm2[] PROGMEM = "-2";
+auto om2 = MenuItemTimeOffset (mlOm2, -2);
+const char mlOm1[] PROGMEM = "-1";
+auto om1 = MenuItemTimeOffset (mlOm1, -1);
+const char mlO0[] PROGMEM = "0";
+auto o0 = MenuItemTimeOffset (mlO0, 0);
+const char mlOp1[] PROGMEM = "+1";
+auto op1 = MenuItemTimeOffset (mlOp1, +1);
+const char mlOp2[] PROGMEM = "+2";
+auto op2 = MenuItemTimeOffset (mlOp2, +2);
+const char mlOp3[] PROGMEM = "+3";
+auto op3 = MenuItemTimeOffset (mlOp3, +3);
+const char mlOp4[] PROGMEM = "+4";
+auto op4 = MenuItemTimeOffset (mlOp4, +4);
+const char mlOp5[] PROGMEM = "+5";
+auto op5 = MenuItemTimeOffset (mlOp5, +5);
+const char mlOp6[] PROGMEM = "+6";
+auto op6 = MenuItemTimeOffset (mlOp6, +6);
+const char mlOp7[] PROGMEM = "+7";
+auto op7 = MenuItemTimeOffset (mlOp7, +7);
+const char mlOp8[] PROGMEM = "+8";
+auto op8 = MenuItemTimeOffset (mlOp8, +8);
+const char mlOp9[] PROGMEM = "+9";
+auto op9 = MenuItemTimeOffset (mlOp9, +9);
+const char mlOp10[] PROGMEM = "+10";
+auto op10 = MenuItemTimeOffset (mlOp10, +10);
+const char mlOp11[] PROGMEM = "+11";
+auto op11 = MenuItemTimeOffset (mlOp11, +11);
+const char mlOp12[] PROGMEM = "+12";
+auto op12 = MenuItemTimeOffset (mlOp12, +12);
 MenuItem *subMenuUtcOffset[] = {
 	&om12, &om11, &om10, &om9, &om8, &om7, &om6, &om5, &om4, &om3, &om2, &om1,
 	&o0,
@@ -295,8 +341,10 @@ MenuItem *subMenuUtcOffset[] = {
 	NULL
 };
 
-auto toOff = SwitcherMenuItem ("UTC Offset", subMenuUtcOffset);
-auto toDst = SwitcherMenuItem ("Daylight Saving", subMenuDstMode);
+const char mlUtcOffset[] PROGMEM = "UTC Offset";
+auto toOff = SwitcherMenuItem (mlUtcOffset, subMenuUtcOffset);
+const char mlDst[] PROGMEM = "Daylight Saving";
+auto toDst = SwitcherMenuItem (mlDst, subMenuDstMode);
 MenuItem *subMenuTimeOpts[] = {&toOff, &toDst, &lbtop, NULL};
 
 
@@ -306,11 +354,11 @@ MenuItem *subMenuTimeOpts[] = {&toOff, &toDst, &lbtop, NULL};
 
 class StartStopMenuItem: public MenuItem {
 public:
-	const char *getName (void) const override {
+	FlashString getName (void) const override {
 		if (logEnabled)
-			return "Stop";
+			return F("Stop");
 		else
-			return "Start";
+			return F("Start");
 	}
 
 	void activate (void) override {
@@ -323,7 +371,7 @@ public:
 
 class ExitMenuItem: public StaticMenuItem {
 public:
-	ExitMenuItem (): StaticMenuItem ("Exit") {
+	ExitMenuItem (): StaticMenuItem (PSTR("Exit")) {
 	}
 
 	void activate (void) override {
@@ -332,7 +380,9 @@ public:
 };
 
 auto ss = StartStopMenuItem ();
-auto lo = SwitcherMenuItem ("Log Options", subMenuLogOpts);
-auto to = SwitcherMenuItem ("Time Options", subMenuTimeOpts);
+const char mlLogOpts[] PROGMEM = "Log Options";
+auto lo = SwitcherMenuItem (mlLogOpts, subMenuLogOpts);
+const char mlTimeOpts[] PROGMEM = "Time Options";
+auto to = SwitcherMenuItem (mlTimeOpts, subMenuTimeOpts);
 auto ex = ExitMenuItem ();
 MenuItem *topMenu[] = {&ss, &lo, &to, &ex, NULL};
