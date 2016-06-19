@@ -103,6 +103,12 @@ void draw () {
 	}
 #endif
 
+	// Log status
+	if (logEnabled) {
+		u8g.setPrintPos (80, 3);
+		u8g.print ('L');
+	}
+
 	// Battery icon, drawn by hand
 	int top = (HEADER_HEIGHT - BAT_HEIGHT) / 2;
 	u8g.drawFrame (128 - BAT_WIDTH, top, BAT_WIDTH, BAT_HEIGHT);  // Outside box
