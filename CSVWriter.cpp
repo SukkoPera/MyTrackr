@@ -32,7 +32,6 @@ boolean CSVWriter::openFile (const char* _path, int _ncols, const char* cols[]) 
 			}
 
 			print (cols[i]);
-			//~ endFile ();
 		}
 #ifdef ENABLE_SD
 	}
