@@ -1,6 +1,11 @@
 #include "CSVWriter.h"
 #include "debug.h"
 
+#define PSTR_TO_F(s) reinterpret_cast<const __FlashStringHelper *> (s)
+#define F_TO_PSTR(s) reinterpret_cast<PGM_P> (s)
+#define FlashString const __FlashStringHelper *
+
+
 #ifdef ENABLE_SD
 SdFat CSVWriter::SD;
 #endif
@@ -13,7 +18,7 @@ boolean CSVWriter::begin (byte ssPin) {
 #endif
 }
 
-boolean CSVWriter::openFile (const char* _path, int _ncols, const char* cols[]) {
+boolean CSVWriter::openFile (const char* _path, int _ncols, const char* const cols[]) {
 	path = _path;
 	ncols = _ncols;
 
@@ -21,17 +26,12 @@ boolean CSVWriter::openFile (const char* _path, int _ncols, const char* cols[]) 
 	if (!SD.exists (path)) {
 #endif
 		// File does not exist, create it and write header line
-		if (cols != NULL) {
-			byte i;
-
-			newRecord ();
-
-			for (i = 0; i < ncols - 1; i++) {
-				print (cols[i]);
+		newRecord ();
+		for (byte i = 0; i < ncols; i++) {
+			FlashString colName = PSTR_TO_F (pgm_read_word (&(cols[i])));
+			print (colName);
+			if (i < ncols - 1)
 				newField ();
-			}
-
-			print (cols[i]);
 		}
 #ifdef ENABLE_SD
 	}
