@@ -111,7 +111,7 @@ void draw () {
 	/***************************************************************************
 	 * Main screen
 	 **************************************************************************/
-	if (!menuHandler.show) {
+	if (!menuHandler.isShown ()) {
 		switch (((millis () / 1000L) / 7) % 3) {
 			case 0:
 				// Position icon
@@ -211,8 +211,6 @@ void uiStep (void) {
 		uiKeyCode = KEY_NONE;
 }
 
-
-boolean menu_redraw_required = false;
 byte last_key_code = KEY_NONE;
 
 
@@ -222,15 +220,13 @@ void updateMenu (void) {
 	}
 	last_key_code = uiKeyCode;
 
-	if (menuHandler.show) {
+	if (menuHandler.isShown ()) {
 		switch (uiKeyCode) {
 			case KEY_NEXT:
 				menuHandler.next ();
-				menu_redraw_required = true;
 				break;
 			case KEY_SELECT:
 				menuHandler.activate ();
-				menu_redraw_required = true;
 				break;
 			default:
 				break;
@@ -239,8 +235,7 @@ void updateMenu (void) {
 				//~ break;
 		}
 	} else if (uiKeyCode != KEY_NONE) {
-		menuHandler.show = true;
-		menu_redraw_required = true;
+		menuHandler.show ();
 	}
 }
 
@@ -272,18 +267,6 @@ void setup () {
 	pinMode (KEY_NEXT_PIN, INPUT_PULLUP);
 	pinMode (KEY_SELECT_PIN, INPUT_PULLUP);
 	menuHandler.begin (topMenu, MENU_LINES);
-
-	menu_redraw_required = true;     // force initial redraw
-
-
-	// Ready!
-	pinMode (LED_BUILTIN, OUTPUT);
-	for (int i = 0; i < 3; i++) {
-		digitalWrite (LED_BUILTIN, HIGH);
-		delay (50);
-		digitalWrite (LED_BUILTIN, LOW);
-		delay (50);
-	}
 }
 
 void loop () {

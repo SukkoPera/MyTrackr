@@ -273,7 +273,7 @@ public:
 	}
 
 	void activate (void) override {
-		menuHandler.show = false;
+		menuHandler.hide ();
 	}
 };
 

@@ -40,13 +40,13 @@ private:
 	byte nLines;	// No. of lines on screen
 	byte curItem;
 	byte firstItem;
+	boolean shown;
 
 public:
-	boolean show;
 
-	void begin (const Menu& m, byte _nLines, boolean _show = false) {
+	void begin (const Menu& m, byte _nLines, boolean _shown = false) {
 		nLines = _nLines;
-		show = _show;
+		shown = _shown;
 		setCur (m);
 	}
 
@@ -56,8 +56,20 @@ public:
 		firstItem = 0;
 	}
 
+	void show () {
+		shown = true;
+	}
+
+	void hide () {
+		shown = false;
+	}
+
+	boolean isShown () const {
+		return shown;
+	}
+
 	void draw () {
-		if (show) {
+		if (shown) {
 			u8g.setFont (u8g_font_6x10);
 			u8g.setFontRefHeightExtendedText ();
 			u8g.setFontPosTop ();
@@ -91,8 +103,9 @@ public:
 			} else {
 				firstItem = 0;
 			}
-		} else if (curItem < firstItem)
+		} else if (curItem < firstItem) {
 			firstItem--;
+		}
 	}
 
 	void next () {
@@ -100,8 +113,9 @@ public:
 		if (!item) {
 			curItem = 0;
 			firstItem = 0;
-		} else if (curItem >= firstItem + nLines)
+		} else if (curItem >= firstItem + nLines) {
 			firstItem++;
+		}
 	}
 
 	void activate () {
