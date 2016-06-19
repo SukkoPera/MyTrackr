@@ -18,7 +18,7 @@ boolean CSVWriter::begin (byte ssPin) {
 #endif
 }
 
-boolean CSVWriter::openFile (const char* _path, int _ncols, const char* const cols[]) {
+boolean CSVWriter::openFile (const char* _path, byte _ncols, const char* const cols[]) {
 	path = _path;
 	ncols = _ncols;
 

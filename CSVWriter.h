@@ -12,7 +12,7 @@ class CSVWriter: public Print {
 public:
 	boolean begin (byte ssPin);
 
-	boolean openFile (const char* _path, int _ncols, const char* const cols[]);
+	boolean openFile (const char* _path, byte _ncols, const char* const cols[]);
 
 	boolean endFile ();
 
