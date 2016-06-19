@@ -70,10 +70,6 @@ public:
 
 	void draw () {
 		if (shown) {
-			u8g.setFont (u8g_font_6x10);
-			u8g.setFontRefHeightExtendedText ();
-			u8g.setFontPosTop ();
-
 			byte h = u8g.getFontAscent () - u8g.getFontDescent ();
 			byte w = u8g.getWidth ();
 			MenuItem *item = NULL;

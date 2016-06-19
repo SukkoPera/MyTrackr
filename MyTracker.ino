@@ -83,8 +83,6 @@ void draw () {
 	 * Header
 	 **************************************************************************/
 
-	u8g.setFontPosTop ();
-
 	// Sat icon (Blink if fix is not valid)
 	time_t tt = makeTime (fix.time) + (utcOffset + dstOffset ()) * SECS_PER_HOUR;
 	if ((fix.pos.valid && timeStatus () == timeSet && now () - tt < 10) || ((millis () / 1000) % 2) == 0) {
@@ -92,7 +90,6 @@ void draw () {
 	}
 
 	// Number of sats in view
-	u8g.setFont (u8g_font_6x10);
 	u8g.setPrintPos (20, 3);
 	u8g.print (fix.nsats);
 
@@ -271,6 +268,11 @@ void setup () {
 	pinMode (KEY_NEXT_PIN, INPUT_PULLUP);
 	pinMode (KEY_SELECT_PIN, INPUT_PULLUP);
 	menuHandler.begin (topMenu, MENU_LINES);
+
+	// We always use these U8G settings
+	u8g.setFont (u8g_font_6x10);
+	u8g.setFontPosTop ();
+	u8g.setFontRefHeightExtendedText ();
 }
 
 void loop () {
