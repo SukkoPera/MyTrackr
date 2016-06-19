@@ -75,6 +75,8 @@ time_t lastLoggedFix;
 unsigned long lastLogMillis = 0;
 
 void draw () {
+	static const char naString[] PROGMEM = "N/A";
+
 	u8g.setDefaultForegroundColor ();
 
 	/***************************************************************************
@@ -125,9 +127,9 @@ void draw () {
 					u8g.print (fix.pos.lon, 6);
 				} else {
 					u8g.setPrintPos (52, 32);
-					u8g.print (F("N/A"));
+					u8g.print (PSTR_TO_F (naString));
 					u8g.setPrintPos (52, 42);
-					u8g.print (F("N/A"));
+					u8g.print (PSTR_TO_F (naString));
 				}
 				break;
 			case 1: {
@@ -139,15 +141,15 @@ void draw () {
 					u8g.print (fix.course.value);
 					u8g.print ((char) 176);   // Degrees symbol, font-dependent
 				} else {
-					u8g.print (F("N/A"));
+					u8g.print (PSTR_TO_F (naString));
 				}
 
 				u8g.setPrintPos (52, 42);
 				if (fix.speed.valid) {
 					u8g.print (fix.speed.value);
-					u8g.print (F(" km/h"));
+					u8g.print (PSTR_TO_F (naString));
 				} else {
-					u8g.print (F("N/A"));
+					u8g.print (PSTR_TO_F (naString));
 				}
 				break;
 			} case 2:
@@ -176,9 +178,9 @@ void draw () {
 					u8g.print (second ());
 				} else {
 					u8g.setPrintPos (52, 32);
-					u8g.print (F("N/A"));
+					u8g.print (PSTR_TO_F (naString));
 					u8g.setPrintPos (52, 42);
-					u8g.print (F("N/A"));
+					u8g.print (PSTR_TO_F (naString));
 				}
 				break;
 		}
@@ -202,10 +204,11 @@ Key readKeys (void) {
 	return uiKeyCode;
 }
 
-byte last_key_code = KEY_NONE;
 
 
 void updateMenu (void) {
+	static byte last_key_code = KEY_NONE;
+
 	// Avoid repeated presses
 	Key uiKeyCode = readKeys ();
 	if (uiKeyCode != KEY_NONE && last_key_code == uiKeyCode) {
