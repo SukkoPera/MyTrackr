@@ -4,8 +4,10 @@
 #include <Arduino.h>
 #include "config.h"
 
-#ifdef ENABLE_SD
+#if defined (ENABLE_SD_FATLIB)
 #include <SdFat.h>
+#elif defined (ENABLE_SD_FAT16)
+#include <Fat16.h>
 #endif
 
 class CSVWriter: public Print {
@@ -14,9 +16,9 @@ public:
 
 	boolean openFile (const char* _path, byte _ncols, const char* const cols[]);
 
-	boolean endFile ();
+	boolean closeFile ();
 
-	boolean newRecord ();
+	void endRecord ();
 
 	void newField ();
 
@@ -24,12 +26,13 @@ protected:
 	size_t write (uint8_t c);
 
 private:
-#ifdef ENABLE_SD
+#if defined (ENABLE_SD_FATLIB)
 	static SdFat SD;
 	File file;
+#elif defined (ENABLE_SD_FAT16)
+	static SdCard SD;
+	Fat16 file;
 #endif
-	const char* path;
-	byte ncols;
 };
 
 #endif

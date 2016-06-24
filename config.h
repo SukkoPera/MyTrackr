@@ -1,10 +1,21 @@
 #ifndef CONFIG_H_INCLUDED
 #define CONFIG_H_INCLUDED
 
-/* Define to actually enable SD support. If disabled logging will be redirected
- * to the serial monitor. Useful fo debugging.
+/* Define to actually enable SD support through the SdFatLib library. If both
+ * this and ENABLE_SD_FAT16 are not defined, logging will be redirected to the
+ * serial monitor, useful fo debugging.
  */
-#define ENABLE_SD
+//~ #define ENABLE_SD_FATLIB
+
+/* Define this to enable SD support through the FAT16 library. This saves flash
+ * space but has a number of restrictions, such as only supporting 8+3 filenames
+ * and not supporting SDHC (i.e. > 2 GB) cards.
+ *
+ * Get the library at https://github.com/greiman/Fat16
+ */
+#define ENABLE_SD_FAT16
+
+// SD Slave-Select (SS, also known as CS) pin
 #define SD_CHIPSELECT 4
 
 /* Number of decimal digits to use when logging latitude and longitude.
@@ -39,6 +50,6 @@
 
 /* DEFINE this to DISABLE debug messages
  */
-#define NDEBUG
+//~ #define NDEBUG
 
 #endif

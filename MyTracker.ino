@@ -1,3 +1,4 @@
+#include "config.h"
 #include "debug.h"
 
 //~ #include <PString.h>
@@ -93,11 +94,9 @@ void draw () {
 	u8g.print (currentFix.nsats);
 
 	// SD icon (blink if SD failed)
-#ifdef ENABLE_SD
 	if (sdAvailable || ((millis () / 1000) % 2) == 0) {
 		u8g.drawXBMP (90, 0, microsd_width, microsd_height, microsd_bits);
 	}
-#endif
 
 	// Log status
 	if (logEnabled) {
@@ -149,7 +148,7 @@ void draw () {
 				u8g.setPrintPos (52, 42);
 				if (currentFix.speed.valid) {
 					u8g.print (currentFix.speed.value);
-					u8g.print (F(" km/h"));
+					u8g.print (F(" Km/h"));
 				} else {
 					u8g.print (PSTR_TO_F (naString));
 				}
@@ -393,13 +392,15 @@ void logPosition () {
 			DPRINTLN (F("Skipping log because too close to last fix"));
 		} else {
 			// Gotta log!
-			DPRINTLN (F("Logging GPS currentFix"));
+			DPRINTLN (F("Logging GPS fix"));
 
-			if (!writer.openFile ("/gps.csv", GPS_LOG_COLS, cols)) {
+			if (!writer.openFile ("GPS.CSV", GPS_LOG_COLS, cols)) {
 				DPRINTLN (F("GPS CSV init failed"));
+				sdAvailable = false;
+				logEnabled = false;
 			} else {
 				// Record No
-				writer.newRecord ();
+				//~ writer.newRecord ();
 				writer.print (0);
 
 				// Date
@@ -466,12 +467,18 @@ void logPosition () {
 				writer.newField ();
 				writer.print (currentFix.nsats);
 
-				writer.endFile ();
+				writer.endRecord ();
 
-				lastLoggedFix = currentFix;
+				if (!writer.closeFile ()) {
+					sdAvailable = false;
+					logEnabled = false;
+				} else {
+					lastLoggedFix = currentFix;
+				}
+
+				lastLogMillis = millis ();
 			}
 
-			lastLogMillis = millis ();
 		}
 	}
 }

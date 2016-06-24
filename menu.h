@@ -260,7 +260,11 @@ public:
 	}
 
 	void activate (void) override {
-		logEnabled = !logEnabled;
+		if (!logEnabled && sdAvailable) {
+			logEnabled = true;
+		} else {
+			logEnabled = false;
+		}
 
 		DPRINT (F("Logging is now "));
 		DPRINTLN (logEnabled ? F("ON") : F("OFF"));
