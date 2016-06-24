@@ -39,6 +39,6 @@
 
 /* DEFINE this to DISABLE debug messages
  */
-//~ #define NDEBUG
+#define NDEBUG
 
 #endif
