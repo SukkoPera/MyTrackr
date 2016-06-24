@@ -6,7 +6,7 @@
 //~ SoftwareSerial ss (7, 8);
 //#define GPS_SERIAL ss
 #define GPS_SERIAL Serial
-#define GPS_INTERVAL 60
+#define GPS_INTERVAL 50
 //#define GPS_BAUD 4800
 #define GPS_BAUD 9600
 
@@ -38,7 +38,7 @@ boolean logEnabled = false;
 
 // Interval between two consecutive log updates
 byte logFreq = DEFAULT_LOG_INTERVAL;
-int logDist;
+unsigned int logDist;
 LogRotation logRot;
 
 signed char utcOffset = DEFAULT_TZ_OFFSET;
@@ -69,9 +69,8 @@ struct GpsFix {
 	unsigned int nsats;
 };
 
-GpsFix fix;
+GpsFix currentFix, lastLoggedFix;
 
-time_t lastLoggedFix;
 unsigned long lastLogMillis = 0;
 
 void draw () {
@@ -83,15 +82,15 @@ void draw () {
 	 * Header
 	 **************************************************************************/
 
-	// Sat icon (Blink if fix is not valid)
-	time_t tt = makeTime (fix.time) + (utcOffset + dstOffset ()) * SECS_PER_HOUR;
-	if ((fix.pos.valid && timeStatus () == timeSet && now () - tt < 10) || ((millis () / 1000) % 2) == 0) {
+	// Sat icon (Blink if currentFix is not valid)
+	time_t tt = makeTime (currentFix.time) + (utcOffset + dstOffset ()) * SECS_PER_HOUR;
+	if ((currentFix.pos.valid && timeStatus () == timeSet && now () - tt < 10) || ((millis () / 1000) % 2) == 0) {
 		u8g.drawXBMP (0, 0, sat_width, sat_height, sat_bits);
 	}
 
 	// Number of sats in view
 	u8g.setPrintPos (20, 3);
-	u8g.print (fix.nsats);
+	u8g.print (currentFix.nsats);
 
 	// SD icon (blink if SD failed)
 #ifdef ENABLE_SD
@@ -123,11 +122,11 @@ void draw () {
 				u8g.drawXBMP (20, 33, position_width, position_height, position_bits);
 
 				// Coordinates
-				if (fix.pos.valid) {
+				if (currentFix.pos.valid) {
 					u8g.setPrintPos (52, 32);
-					u8g.print (fix.pos.lat, 6);
+					u8g.print (currentFix.pos.lat, 6);
 					u8g.setPrintPos (52, 42);
-					u8g.print (fix.pos.lon, 6);
+					u8g.print (currentFix.pos.lon, 6);
 				} else {
 					u8g.setPrintPos (52, 32);
 					u8g.print (PSTR_TO_F (naString));
@@ -140,17 +139,17 @@ void draw () {
 				u8g.drawXBMP (20, 33, compass_width, compass_height, compass_bits);
 
 				u8g.setPrintPos (52, 32);
-				if (fix.course.valid) {
-					u8g.print (fix.course.value);
+				if (currentFix.course.valid) {
+					u8g.print (currentFix.course.value);
 					u8g.print ((char) 176);   // Degrees symbol, font-dependent
 				} else {
 					u8g.print (PSTR_TO_F (naString));
 				}
 
 				u8g.setPrintPos (52, 42);
-				if (fix.speed.valid) {
-					u8g.print (fix.speed.value);
-					u8g.print (PSTR_TO_F (naString));
+				if (currentFix.speed.valid) {
+					u8g.print (currentFix.speed.value);
+					u8g.print (F(" km/h"));
 				} else {
 					u8g.print (PSTR_TO_F (naString));
 				}
@@ -257,12 +256,12 @@ void setup () {
 	DPRINT (F("Using TinyGPS "));
 	DPRINTLN (TinyGPS::library_version ());
 
-	fix.pos.valid = false;
-	fix.alt.valid = false;
-	fix.course.valid = false;
-	fix.speed.valid = false;
-	fix.hdop.valid = false;
-	lastLoggedFix = -1;
+	currentFix.pos.valid = false;
+	currentFix.alt.valid = false;
+	currentFix.course.valid = false;
+	currentFix.speed.valid = false;
+	currentFix.hdop.valid = false;
+	//~ lastLoggedFix = -1;
 	lastLogMillis = 0;
 
 	pinMode (KEY_NEXT_PIN, INPUT_PULLUP);
@@ -315,39 +314,43 @@ boolean dstOffset () {
 }
 
 void decodeGPS () {
+#ifdef GPS_INTERVAL
 	unsigned long start = millis ();
 	do {
 		while (GPS_SERIAL.available ()) {
+#endif
 			char c = GPS_SERIAL.read ();
 			gps.encode (c);
+#ifdef GPS_INTERVAL
 		}
 	} while (millis () - start < GPS_INTERVAL);
+#endif
 
 	unsigned long age;
-	gps.f_get_position (&fix.pos.lat, &fix.pos.lon, &age);
-	fix.pos.valid = age != TinyGPS::GPS_INVALID_AGE;
+	gps.f_get_position (&currentFix.pos.lat, &currentFix.pos.lon, &age);
+	currentFix.pos.valid = age != TinyGPS::GPS_INVALID_AGE;
 
-	fix.alt.value = gps.f_altitude ();
-	fix.alt.valid = fix.alt.value != TinyGPS::GPS_INVALID_F_ALTITUDE;
+	currentFix.alt.value = gps.f_altitude ();
+	currentFix.alt.valid = currentFix.alt.value != TinyGPS::GPS_INVALID_F_ALTITUDE;
 
-	fix.course.value = gps.f_course ();
-	fix.course.valid = fix.course.value != TinyGPS::GPS_INVALID_F_ANGLE;
+	currentFix.course.value = gps.f_course ();
+	currentFix.course.valid = currentFix.course.value != TinyGPS::GPS_INVALID_F_ANGLE;
 
-	fix.speed.value = gps.f_speed_kmph ();
-	fix.speed.valid = fix.speed.value != TinyGPS::GPS_INVALID_F_SPEED;
+	currentFix.speed.value = gps.f_speed_kmph ();
+	currentFix.speed.valid = currentFix.speed.value != TinyGPS::GPS_INVALID_F_SPEED;
 
-	fix.hdop.value = gps.hdop () / 100.0;
-	fix.hdop.valid = gps.hdop () != TinyGPS::GPS_INVALID_HDOP;
+	currentFix.hdop.value = gps.hdop () / 100.0;
+	currentFix.hdop.valid = gps.hdop () != TinyGPS::GPS_INVALID_HDOP;
 
-	fix.nsats = gps.satellites () != TinyGPS::GPS_INVALID_SATELLITES ? gps.satellites () : 0;
+	currentFix.nsats = gps.satellites () != TinyGPS::GPS_INVALID_SATELLITES ? gps.satellites () : 0;
 
 	// Set the time to the latest GPS reading (which is always UTC)
 	int year;
-	gps.crack_datetime (&year, &fix.time.Month, &fix.time.Day, &fix.time.Hour, &fix.time.Minute, &fix.time.Second, NULL, &age);
-	fix.time.Year = year - 1970;
+	gps.crack_datetime (&year, &currentFix.time.Month, &currentFix.time.Day, &currentFix.time.Hour, &currentFix.time.Minute, &currentFix.time.Second, NULL, &age);
+	currentFix.time.Year = year - 1970;
 
 	if (age < 600) {
-		time_t tt = makeTime (fix.time);
+		time_t tt = makeTime (currentFix.time);
         setTime (tt);
 
         // Convert to local time
@@ -377,93 +380,98 @@ const char* const cols[GPS_LOG_COLS] PROGMEM = {
 
 void logPosition () {
 	if (logEnabled) {
-		time_t tt = makeTime (fix.time);
-		if (tt == lastLoggedFix) {
+		time_t tcur = makeTime (currentFix.time);
+		time_t tlast = makeTime (lastLoggedFix.time);
+		if (lastLogMillis != 0 && millis () - lastLogMillis < logFreq * 1000UL) {
+			//~ DPRINTLN (F("Skipping log because too early"));
+		} else if (tcur == tlast) {
 			DPRINTLN (F("Skipping log, because fix unchanged"));
-		} else if (!fix.pos.valid) {
+		} else if (!currentFix.pos.valid) {
 			DPRINTLN (F("Skipping log because no fix detected"));
+		} else if (logDist > 0 && lastLoggedFix.pos.valid &&
+				TinyGPS::distance_between (lastLoggedFix.pos.lat, lastLoggedFix.pos.lon, currentFix.pos.lat, currentFix.pos.lon) <= logDist) {
+			DPRINTLN (F("Skipping log because too close to last fix"));
 		} else {
-			if (lastLogMillis == 0 || millis () - lastLogMillis >= logFreq * 1000UL) {
-				DPRINTLN (F("Logging GPS fix"));
+			// Gotta log!
+			DPRINTLN (F("Logging GPS currentFix"));
 
-				if (!writer.openFile ("/gps.csv", GPS_LOG_COLS, cols)) {
-					DPRINTLN (F("GPS CSV init failed"));
-				} else {
-					// Record No
-					writer.newRecord ();
+			if (!writer.openFile ("/gps.csv", GPS_LOG_COLS, cols)) {
+				DPRINTLN (F("GPS CSV init failed"));
+			} else {
+				// Record No
+				writer.newRecord ();
+				writer.print (0);
+
+				// Date
+				writer.newField ();
+				writer.print (currentFix.time.Year + 1970);
+				writer.print ('/');
+				if (currentFix.time.Month < 10)
 					writer.print (0);
+				writer.print (currentFix.time.Month);
+				writer.print ('/');
+				if (currentFix.time.Day < 10)
+					writer.print (0);
+				writer.print (currentFix.time.Day);
 
-					// Date
-					writer.newField ();
-					writer.print (fix.time.Year + 1970);
-					writer.print ('/');
-					if (fix.time.Month < 10)
-						writer.print (0);
-					writer.print (fix.time.Month);
-					writer.print ('/');
-					if (fix.time.Day < 10)
-						writer.print (0);
-					writer.print (fix.time.Day);
+				// Time
+				writer.newField ();
+				if (currentFix.time.Hour < 10)
+					writer.print (0);
+				writer.print (currentFix.time.Hour);
+				writer.print (':');
+				if (currentFix.time.Minute < 10)
+					writer.print (0);
+				writer.print (currentFix.time.Minute);
+				writer.print (':');
+				if (currentFix.time.Second < 10)
+					writer.print (0);
+				writer.print (currentFix.time.Second);
+				//~ writer.print ('.');
+				//~ if (hundredths < 100)
+					//~ writer.print (0);
+				//~ if (hundredths < 10)
+					//~ writer.print (0);
+				//~ writer.print (hundredths);
 
-					// Time
-					writer.newField ();
-					if (fix.time.Hour < 10)
-						writer.print (0);
-					writer.print (fix.time.Hour);
-					writer.print (':');
-					if (fix.time.Minute < 10)
-						writer.print (0);
-					writer.print (fix.time.Minute);
-					writer.print (':');
-					if (fix.time.Second < 10)
-						writer.print (0);
-					writer.print (fix.time.Second);
-					//~ writer.print ('.');
-					//~ if (hundredths < 100)
-						//~ writer.print (0);
-					//~ if (hundredths < 10)
-						//~ writer.print (0);
-					//~ writer.print (hundredths);
+				// Latitude
+				writer.newField ();
+				writer.print (currentFix.pos.lat, LATLON_PREC);
 
-					// Latitude
-					writer.newField ();
-					writer.print (fix.pos.lat, LATLON_PREC);
+				// Longitude
+				writer.newField ();
+				writer.print (currentFix.pos.lon, LATLON_PREC);
 
-					// Longitude
-					writer.newField ();
-					writer.print (fix.pos.lon, LATLON_PREC);
+				// Altitude
+				writer.newField ();
+				if (currentFix.alt.valid)
+					writer.print (currentFix.alt.value);
 
-					// Altitude
-					writer.newField ();
-					if (fix.alt.valid)
-						writer.print (fix.alt.value);
+				// Speed (knots)
+				writer.newField ();
+				if (currentFix.speed.valid)
+					writer.print (currentFix.speed.value);
 
-					// Speed (knots)
-					writer.newField ();
-					if (fix.speed.valid)
-						writer.print (fix.speed.value);
+				// Course/Track/Heading
+				writer.newField ();
+				if (currentFix.course.valid)
+					writer.print (currentFix.course.value);
 
-					// Course/Track/Heading
-					writer.newField ();
-					if (fix.course.valid)
-						writer.print (fix.course.value);
+				// Horizontal Dilution of Precision (HDOP)
+				writer.newField ();
+				if (currentFix.hdop.valid)
+					writer.print (currentFix.hdop.value);
 
-					// Horizontal Dilution of Precision (HDOP)
-					writer.newField ();
-					if (fix.hdop.valid)
-						writer.print (fix.hdop.value);
+				// Number of sats
+				writer.newField ();
+				writer.print (currentFix.nsats);
 
-					// Number of sats
-					writer.newField ();
-					writer.print (fix.nsats);
+				writer.endFile ();
 
-					writer.endFile ();
-
-					lastLoggedFix = tt;
-				}
-
-				lastLogMillis = millis ();
+				lastLoggedFix = currentFix;
 			}
+
+			lastLogMillis = millis ();
 		}
 	}
 }
