@@ -13,9 +13,9 @@
 
 boolean CSVWriter::begin (byte ssPin) {
 #if defined (ENABLE_SD_FATLIB)
-	return SD.begin (ssPin) && Fat16::init (&SD);
-#elif defined (ENABLE_SD_FAT16)
 	return SD.begin (ssPin);
+#elif defined (ENABLE_SD_FAT16)
+	return SD.begin (ssPin) && Fat16::init (&SD);
 #else
 	return true;
 #endif
@@ -70,7 +70,7 @@ boolean CSVWriter::closeFile () {
 #if defined (ENABLE_SD_FATLIB) || defined (ENABLE_SD_FAT16)
 	if (file.isOpen ()) {
 #endif
-		ret = file.close () == 0;
+		ret = file.close ();
 	}
 
 	return ret;

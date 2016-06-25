@@ -287,7 +287,7 @@ void loop () {
 	} while (u8g.nextPage ());
 }
 
-boolean dstOffset () {
+byte dstOffset () {
 	switch (dstMode) {
 		case DST_ON:
 			return 1;
@@ -358,11 +358,10 @@ void decodeGPS () {
 }
 
 
-#define GPS_LOG_COLS 10
+#define GPS_LOG_COLS 9
 
 // GPS Logfile Columns
 // Column names taken from http://www.gpsbabel.org/htmldoc-development/fmt_unicsv.html
-const char c0[] PROGMEM = "no";
 const char c1[] PROGMEM = "date";
 const char c2[] PROGMEM = "time";
 const char c3[] PROGMEM = "lat";
@@ -374,7 +373,7 @@ const char c8[] PROGMEM = "hdop";
 const char c9[] PROGMEM = "sat";
 
 const char* const cols[GPS_LOG_COLS] PROGMEM = {
-	c0, c1, c2, c3, c4, c5, c6, c7, c8, c9
+	c1, c2, c3, c4, c5, c6, c7, c8, c9
 };
 
 void logPosition () {
@@ -399,12 +398,7 @@ void logPosition () {
 				sdAvailable = false;
 				logEnabled = false;
 			} else {
-				// Record No
-				//~ writer.newRecord ();
-				writer.print (0);
-
 				// Date
-				writer.newField ();
 				writer.print (currentFix.time.Year + 1970);
 				writer.print ('/');
 				if (currentFix.time.Month < 10)
@@ -470,6 +464,7 @@ void logPosition () {
 				writer.endRecord ();
 
 				if (!writer.closeFile ()) {
+					DPRINTLN (F("CSV file close failed"));
 					sdAvailable = false;
 					logEnabled = false;
 				} else {
