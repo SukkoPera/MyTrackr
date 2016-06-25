@@ -28,6 +28,15 @@
 // Default logging interval (sec)
 #define DEFAULT_LOG_INTERVAL 10
 
+/* Default logging distance: position will not be logged unless it is at least
+ * this far from the previously logged position (meters, 0 = disabled)
+ */
+#define DEFAULT_LOG_DISTANCE 0
+
+/* Default log rotation interval: NOT YET IMPLEMENTED
+ */
+#define DEFAULT_LOG_ROTATION LOGROT_DAILY
+
 /* Default offset hours from gps time (UTC).
  * Ideally, it should be possible to learn the time zone based on the GPS
  * position data.  However, that would require a complex library, probably

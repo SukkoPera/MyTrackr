@@ -39,8 +39,8 @@ boolean logEnabled = false;
 
 // Interval between two consecutive log updates
 byte logFreq = DEFAULT_LOG_INTERVAL;
-unsigned int logDist;
-LogRotation logRot;
+unsigned int logDist = DEFAULT_LOG_DISTANCE;
+LogRotation logRot = DEFAULT_LOG_ROTATION;		// FIXME: TBD
 
 signed char utcOffset = DEFAULT_TZ_OFFSET;
 DaylightSavingMode dstMode = DST_AUTO;
@@ -70,7 +70,25 @@ struct GpsFix {
 	unsigned int nsats;
 };
 
-GpsFix currentFix, lastLoggedFix;
+GpsFix currentFix = {
+	{0, 0, false},
+	{0, false},
+	{0, false},
+	{0, false},
+	{0, false},
+	{0, 0, 0, 0, 0, 0, 0},
+	0
+};
+
+GpsFix lastLoggedFix = {
+	{0, 0, false},
+	{0, false},
+	{0, false},
+	{0, false},
+	{0, false},
+	{0, 0, 0, 0, 0, 0, 0},
+	0
+};
 
 unsigned long lastLogMillis = 0;
 
@@ -254,14 +272,6 @@ void setup () {
 
 	DPRINT (F("Using TinyGPS "));
 	DPRINTLN (TinyGPS::library_version ());
-
-	currentFix.pos.valid = false;
-	currentFix.alt.valid = false;
-	currentFix.course.valid = false;
-	currentFix.speed.valid = false;
-	currentFix.hdop.valid = false;
-	//~ lastLoggedFix = -1;
-	lastLogMillis = 0;
 
 	pinMode (KEY_NEXT_PIN, INPUT_PULLUP);
 	pinMode (KEY_SELECT_PIN, INPUT_PULLUP);
