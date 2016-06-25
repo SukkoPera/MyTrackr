@@ -335,9 +335,11 @@ void decodeGPS () {
 	} while (millis () - start < GPS_INTERVAL);
 #endif
 
+	currentFix.nsats = gps.satellites () != TinyGPS::GPS_INVALID_SATELLITES ? gps.satellites () : 0;
+
 	unsigned long age;
 	gps.f_get_position (&currentFix.pos.lat, &currentFix.pos.lon, &age);
-	currentFix.pos.valid = age != TinyGPS::GPS_INVALID_AGE;
+	currentFix.pos.valid = age != TinyGPS::GPS_INVALID_AGE && currentFix.nsats > 0;
 
 	currentFix.alt.value = gps.f_altitude ();
 	currentFix.alt.valid = currentFix.alt.value != TinyGPS::GPS_INVALID_F_ALTITUDE;
@@ -351,7 +353,6 @@ void decodeGPS () {
 	currentFix.hdop.value = gps.hdop () / 100.0;
 	currentFix.hdop.valid = gps.hdop () != TinyGPS::GPS_INVALID_HDOP;
 
-	currentFix.nsats = gps.satellites () != TinyGPS::GPS_INVALID_SATELLITES ? gps.satellites () : 0;
 
 	// Set the time to the latest GPS reading (which is always UTC)
 	int year;
