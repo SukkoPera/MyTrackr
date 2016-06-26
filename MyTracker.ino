@@ -398,7 +398,7 @@ void logPosition () {
 		} else if (!currentFix.pos.valid) {
 			DPRINTLN (F("Skipping log because no fix detected"));
 		} else if (logDist > 0 && lastLoggedFix.pos.valid &&
-				TinyGPS::distance_between (lastLoggedFix.pos.lat, lastLoggedFix.pos.lon, currentFix.pos.lat, currentFix.pos.lon) <= logDist) {
+				TinyGPS::distance_between (lastLoggedFix.pos.lat, lastLoggedFix.pos.lon, currentFix.pos.lat, currentFix.pos.lon) < logDist) {
 			DPRINTLN (F("Skipping log because too close to last fix"));
 		} else {
 			// Gotta log!
