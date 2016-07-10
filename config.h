@@ -16,7 +16,7 @@
 #define ENABLE_SD_FAT16
 
 // SD Slave-Select (SS, also known as CS) pin
-#define SD_CHIPSELECT 4
+#define SD_CHIPSELECT 10
 
 /* Number of decimal digits to use when logging latitude and longitude.
  *
@@ -32,6 +32,11 @@
  * this far from the previously logged position (meters, 0 = disabled)
  */
 #define DEFAULT_LOG_DISTANCE 0
+
+/* Define to enable log rotation menu
+ * NOT YET IMPLEMENTED
+ */
+//~ #define ENABLE_ROTATION_MENU
 
 /* Default log rotation interval: NOT YET IMPLEMENTED
  */
@@ -53,9 +58,8 @@
 
 // Pins keys are connected to. PREV can also be left undefined.
 //~ #define KEY_PREV_PIN A2
-#define KEY_NEXT_PIN A1
-#define KEY_SELECT_PIN A0
-
+#define KEY_NEXT_PIN 7
+#define KEY_SELECT_PIN 8
 
 /* DEFINE this to DISABLE debug messages
  */

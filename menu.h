@@ -69,6 +69,7 @@ public:
 	}
 };
 
+#ifdef ENABLE_ROTATION_MENU
 class MenuItemLogRot: public StaticMenuItem {
 private:
 	LogRotation rot;
@@ -86,6 +87,7 @@ public:
 		lb.activate ();
 	}
 };
+#endif
 
 const char mlf1[] PROGMEM = "1 second";
 MenuItemLogFreq lf1 (mlf1, 1);
@@ -111,6 +113,7 @@ const char ml1000[] PROGMEM = "1 km";
 MenuItemLogDist ld1000 (ml1000, 1000);
 MenuItem * const subMenuLogDist[] PROGMEM = {&ldOff, &ld10, &ld100, &ld250, &ld1000, &lb, NULL};
 
+#ifdef ENABLE_ROTATION_MENU
 MenuItemLogRot lrOff (mlOff, LOGROT_OFF);
 const char mlH[] PROGMEM = "Hourly";
 MenuItemLogRot lrH (mlH, LOGROT_HOURLY);
@@ -121,14 +124,21 @@ MenuItemLogRot lrW (mlW, LOGROT_WEEKLY);
 const char mlM[] PROGMEM = "Monthly";
 MenuItemLogRot lrM (mlM, LOGROT_MONTHLY);
 MenuItem * const subMenuLogRot[] PROGMEM = {&lrOff, &lrH, &lrD, &lrW, &lrM, &lb, NULL};
+#endif
 
 const char mlFreq[] PROGMEM = "Frequency";
 SwitcherMenuItem loFreq (mlFreq, subMenuLogFreq);
 const char mlDist[] PROGMEM = "Distance";
 SwitcherMenuItem loDist (mlDist, subMenuLogDist);
+#ifdef ENABLE_ROTATION_MENU
 const char mlRot[] PROGMEM = "Rotation";
 SwitcherMenuItem loRot (mlRot, subMenuLogRot);
-MenuItem * const subMenuLogOpts[] PROGMEM = {&loFreq, &loDist, &loRot, &lbtop, NULL};
+#endif
+MenuItem * const subMenuLogOpts[] PROGMEM = {&loFreq, &loDist,
+#ifdef ENABLE_ROTATION_MENU
+	&loRot,
+#endif
+	&lbtop, NULL};
 
 
 /*******************************************************************************

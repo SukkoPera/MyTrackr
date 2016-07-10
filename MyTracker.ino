@@ -40,7 +40,10 @@ boolean logEnabled = false;
 // Interval between two consecutive log updates
 byte logFreq = DEFAULT_LOG_INTERVAL;
 unsigned int logDist = DEFAULT_LOG_DISTANCE;
+
+#ifdef ENABLE_ROTATION_MENU
 LogRotation logRot = DEFAULT_LOG_ROTATION;		// FIXME: TBD
+#endif
 
 signed char utcOffset = DEFAULT_TZ_OFFSET;
 DaylightSavingMode dstMode = DST_AUTO;
