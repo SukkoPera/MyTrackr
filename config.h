@@ -57,9 +57,40 @@
 #define MENU_LINES 5
 
 // Pins keys are connected to. PREV can also be left undefined.
-//~ #define KEY_PREV_PIN A2
+//~ #define KEY_PREV_PIN 6
 #define KEY_NEXT_PIN 7
 #define KEY_SELECT_PIN 8
+
+// Analog pin used to measure battery level
+#define BATTERY_PIN A0
+
+/* Number of times to sample the battery for each measure (up to 255) and delay
+ * between measures (ms).
+ */
+#define BATTERY_ITERATIONS 10
+#define BATTERY_IT_DELAY 20
+
+// Battery measurement interval (s)
+#define BATTERY_INTERVAL 60
+
+// Number of ADC steps
+#define BATTERY_STEPS 1024
+
+/* Battery level is measured against the internal 1.1v reference, but such
+ * reference can be up to 10% off. If you want measurements to be more accurate,
+ * measure the AREF pin for your particular chip and insert its value here (mV).
+ */
+#define REAL_1_1_REF 1085
+
+/* Since the raw battery voltage is greater than 1.1v, a voltage divider is
+ * needed to bring the level to one that can be measured. We recommend using a
+ * 1M + 330K resistor combination. If you want measurements to be more accurate,
+ * measure your resistors with a multimeter and put the exact values here.
+ *
+ * Note that R1 must always be the bigger resistor.
+ */
+#define BATTERY_R1 1018000UL
+#define BATTERY_R2 331000UL
 
 /* DEFINE this to DISABLE debug messages
  */

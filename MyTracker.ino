@@ -95,6 +95,10 @@ GpsFix lastLoggedFix = {
 
 unsigned long lastLogMillis = 0;
 
+float batteryVoltage = 0;
+
+unsigned long lastBatteryMillis = 0;
+
 void draw () {
 	static const char naString[] PROGMEM = "N/A";
 
@@ -125,11 +129,22 @@ void draw () {
 		u8g.print ('L');
 	}
 
-	// Battery icon, drawn by hand
+	// Battery icon, drawn by hand (Blink if almost dead)
+	// This is a bit crude, I know...
 	int top = (HEADER_HEIGHT - BAT_HEIGHT) / 2;
-	u8g.drawFrame (128 - BAT_WIDTH, top, BAT_WIDTH, BAT_HEIGHT);  // Outside box
-	u8g.drawBox (128 - BAT_WIDTH - BAT_TIP, top + (BAT_HEIGHT - BAT_HEIGHT / 2) / 2, BAT_TIP, BAT_HEIGHT / 2);  // Tip
-	u8g.drawBox (128 - BAT_WIDTH + 2, top + 2, BAT_WIDTH - 4, BAT_HEIGHT - 4);  // Filling (FIXME: Make proportional to charge)
+	byte batPerc = 100;
+	if (batteryVoltage <= 2.9)
+		batPerc = 10;
+	else if (batteryVoltage < 3.6)
+		batPerc = 30;
+	else if (batteryVoltage < 3.8)
+		batPerc = 60;
+	if (batPerc > 10 || ((millis () / 1000) % 2) == 0) {
+		int batFillWidth = (BAT_WIDTH - 2 - 2) * batPerc / 100.0;
+		u8g.drawFrame (128 - BAT_WIDTH, top, BAT_WIDTH, BAT_HEIGHT);  // Outside box
+		u8g.drawBox (128 - BAT_WIDTH - BAT_TIP, top + (BAT_HEIGHT - BAT_HEIGHT / 2) / 2, BAT_TIP, BAT_HEIGHT / 2);  // Tip
+		u8g.drawBox (128 - batFillWidth - 2, top + 2, batFillWidth, BAT_HEIGHT - 4);  // Filling
+	}
 
 
 	/***************************************************************************
@@ -226,8 +241,6 @@ Key readKeys (void) {
 	return uiKeyCode;
 }
 
-
-
 void updateMenu (void) {
 	static byte last_key_code = KEY_NONE;
 
@@ -260,6 +273,37 @@ void updateMenu (void) {
 }
 
 
+void measureBattery () {
+	if (lastBatteryMillis == 0 || millis () - lastBatteryMillis > BATTERY_INTERVAL * 1000UL) {
+		unsigned long tot = 0;
+		for (byte b = 0; b < BATTERY_ITERATIONS; b++) {
+			tot += analogRead (BATTERY_PIN);
+			delay (BATTERY_IT_DELAY);
+		}
+
+		float reading = tot / BATTERY_ITERATIONS;
+
+		DPRINT (F("Battery raw reading: "));
+		DPRINTLN (reading);
+
+#ifdef REAL_1_1_REF
+		batteryVoltage = REAL_1_1_REF / (float) BATTERY_STEPS * reading / 1000;
+#else
+		batteryVoltage = 5.0 / (float) BATTERY_STEPS * reading;
+#endif
+
+#if defined (BATTERY_R1) and defined (BATTERY_R2)
+		batteryVoltage *= (BATTERY_R1 + BATTERY_R2) / BATTERY_R2;
+#endif
+
+		DPRINT (F("Battery voltage: "));
+		DPRINTLN (batteryVoltage);
+
+		lastBatteryMillis = millis ();
+	}
+}
+
+
 void setup () {
 	DSTART (9600);
 
@@ -280,6 +324,14 @@ void setup () {
 	pinMode (KEY_SELECT_PIN, INPUT_PULLUP);
 	menuHandler.begin (topMenu, MENU_LINES);
 
+#ifdef REAL_1_1_REF
+	analogReference (INTERNAL);
+
+	// The ADC needs some readings after references has been switched
+	for (byte i = 0; i < 100; i++)
+		analogRead (BATTERY_PIN);
+#endif
+
 	// We always use these U8G settings
 	u8g.setFont (u8g_font_6x10);
 	u8g.setFontPosTop ();
@@ -289,7 +341,7 @@ void setup () {
 void loop () {
 	decodeGPS ();
 	logPosition ();
-
+	measureBattery ();
 	updateMenu ();
 
 	// u8g Picture loop
@@ -376,10 +428,10 @@ void decodeGPS () {
 
 	if (age < 600) {
 		time_t tt = makeTime (currentFix.time);
-        setTime (tt);
+		setTime (tt);
 
-        // Convert to local time
-        adjustTime ((utcOffset + dstOffset ()) * SECS_PER_HOUR);
+		// Convert to local time
+		adjustTime ((utcOffset + dstOffset ()) * SECS_PER_HOUR);
 	}
 }
 
@@ -499,7 +551,6 @@ void logPosition () {
 
 				lastLogMillis = millis ();
 			}
-
 		}
 	}
 }
