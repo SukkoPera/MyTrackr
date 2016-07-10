@@ -306,15 +306,27 @@ byte dstOffset () {
 		case DST_AUTO:
 		default:
 		{
-			/* This is valid for the EU, for other places see
+			/* This function returns the DST offset for the current UTC time.
+			 * This is valid for the EU, for other places see
 			 * http://www.webexhibits.org/daylightsaving/i.html
 			 *
-			 * Someone please check the implementation anyway :D.
+			 * Results have been checked for 2012-2030 (but should be correct
+			 * since 1996 to 2099) against the following references:
+			 * - http://www.uniquevisitor.it/magazine/ora-legale-italia.php
+			 * - http://www.calendario-365.it/ora-legale-orario-invernale.html
 			 */
-			byte d = day (), m = month (), y = year (), h = hour ();
-			if ((m == 3 && d >= (31 - (5 * y / 4 + 4) % 7) && h >= 1) ||
-			  (m > 3 && m < 10) ||
-			  (m == 10 && d <= (31 - (5 * y / 4 + 1) % 7) && h < 1))
+			byte d = day (), m = month (), h = hour ();
+			unsigned int y = year ();
+
+			// Day in March that DST starts on, at 1 am
+			byte dstOn = (31 - (5 * y / 4 + 4) % 7);
+
+			// Day in October that DST ends  on, at 2 am
+			byte dstOff = (31 - (5 * y / 4 + 1) % 7);
+
+			if ((m > 3 && m < 10) ||
+			  (m == 3 && (d > dstOn || (d == dstOn && h >= 1))) ||
+			  (m == 10 && (d < dstOff || (d == dstOff && h <= 1))))
 				return 1;
 			else
 				return 0;
