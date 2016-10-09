@@ -9,7 +9,7 @@ from sim import GpsSimulator
 #~ LOGFILE = "/tmp/logbat2.txt"
 LOGFILE = "loggps.nmea"
 #~ LOGFILE = None
-SERIAL = "/dev/ttyACM0"
+SERIAL = "/dev/ttyUSB0"
 SPEED = 9600
 TIMEOUT = 1000	# ms
 
