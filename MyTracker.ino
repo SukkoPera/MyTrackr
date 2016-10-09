@@ -320,7 +320,7 @@ void updateMenu (void) {
 
 
 void measureBattery () {
-	// millis() of last time batter was measured
+	// millis() of last time battery was measured
 	static unsigned long lastBatteryMillis = 0;
 
 	if (lastBatteryMillis == 0 || millis () - lastBatteryMillis > BATTERY_INTERVAL * 1000UL) {
