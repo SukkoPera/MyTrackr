@@ -93,11 +93,11 @@ GpsFix lastLoggedFix = {
 	0
 };
 
+// millis() of last time fix was logged to SD
 unsigned long lastLogMillis = 0;
 
+// Battery voltage
 float batteryVoltage = 0;
-
-unsigned long lastBatteryMillis = 0;
 
 void draw () {
 	static const char naString[] PROGMEM = "N/A";
@@ -151,7 +151,7 @@ void draw () {
 	 * Main screen
 	 **************************************************************************/
 	if (!menuHandler.isShown ()) {
-		switch (((millis () / 1000L) / 7) % 3) {
+		switch (((millis () / 1000L) / 6) % 3) {
 			case 0:
 				// Position icon
 				u8g.drawXBMP (20, 33, position_width, position_height, position_bits);
@@ -242,38 +242,77 @@ Key readKeys (void) {
 }
 
 void updateMenu (void) {
-	static byte last_key_code = KEY_NONE;
+#ifdef SCREEN_OFF_DELAY
+	// True if screen is off
+	static boolean sleeping = false;
+
+	// millis() of last keypress
+	static unsigned long lastKeyPress = 0;
+#endif
+
+	// Last key pressed
+	static Key lastKey = KEY_NONE;
 
 	// Avoid repeated presses
-	Key uiKeyCode = readKeys ();
-	if (uiKeyCode != KEY_NONE && last_key_code == uiKeyCode) {
-		return;
-	}
-	last_key_code = uiKeyCode;
+	Key key = readKeys ();
+	if (key != KEY_NONE && key != lastKey) {
+#ifdef SCREEN_OFF_DELAY
+		lastKeyPress = millis ();
 
-	if (menuHandler.isShown ()) {
-		switch (uiKeyCode) {
-			case KEY_NEXT:
-				menuHandler.next ();
-				break;
-#ifdef KEY_PREV_PIN
-			case KEY_PREV:
-				menuHandler.prev ();
-				break;
+		if (sleeping) {
+			// Turn screen back on
+			u8g.sleepOff ();
+			sleeping = false;
+		} else {
 #endif
-			case KEY_SELECT:
-				menuHandler.activate ();
-				break;
-			default:
-				break;
+			if (menuHandler.isShown ()) {
+				switch (key) {
+					case KEY_NEXT:
+						menuHandler.next ();
+						break;
+#ifdef KEY_PREV_PIN
+					case KEY_PREV:
+						menuHandler.prev ();
+						break;
+#endif
+					case KEY_SELECT:
+						menuHandler.activate ();
+						break;
+					default:
+						break;
+				}
+			} else if (key != KEY_NONE) {
+				menuHandler.show ();
+			}
 		}
-	} else if (uiKeyCode != KEY_NONE) {
-		menuHandler.show ();
+#ifdef SCREEN_OFF_DELAY
+	} else if (key == KEY_NONE && millis () - lastKeyPress >= SCREEN_OFF_DELAY) {
+		u8g.sleepOn ();
+		sleeping = true;
 	}
+#endif
+
+	lastKey = key;
+
+	// u8g Picture loop
+#ifdef SCREEN_OFF_DELAY
+	if (!sleeping) {
+#endif
+		u8g.firstPage ();
+		do {
+			draw ();
+			menuHandler.draw ();
+		} while (u8g.nextPage ());
+#ifdef SCREEN_OFF_DELAY
+	}
+#endif
 }
 
 
 void measureBattery () {
+	// millis() of last time batter was measured
+	static unsigned long lastBatteryMillis = 0;
+
 	if (lastBatteryMillis == 0 || millis () - lastBatteryMillis > BATTERY_INTERVAL * 1000UL) {
 		unsigned long tot = 0;
 		for (byte b = 0; b < BATTERY_ITERATIONS; b++) {
@@ -328,7 +367,7 @@ void setup () {
 	analogReference (INTERNAL);
 
 	// The ADC needs some readings after references has been switched
-	for (byte i = 0; i < 100; i++)
+	for (byte i = 0; i < 128; i++)
 		analogRead (BATTERY_PIN);
 #endif
 
@@ -343,13 +382,6 @@ void loop () {
 	logPosition ();
 	measureBattery ();
 	updateMenu ();
-
-	// u8g Picture loop
-	u8g.firstPage ();
-	do {
-		draw ();
-		menuHandler.draw ();
-	} while (u8g.nextPage ());
 }
 
 byte dstOffset () {
