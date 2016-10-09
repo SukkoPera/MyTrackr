@@ -1,117 +1,99 @@
 #!/usr/bin/env python
 
-import re
 import datetime
 import sys
+import csv
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-LOGFILE = "/tmp/logbat.txt"
-
-REGEX = re.compile ("\[([^]]+)\] ([0-9]+), Vcc = ([0-9]+\.[0-9]+) V, Vbat = ([0-9]+\.[0-9]+) V")
+LOGFILE = "battery.csv"
 
 def readData ():
-	x = []
+	dt = []
 	vcc = []
 	vbat = []
 
 	with open (LOGFILE, "r") as fp:
-		line = fp.readline ()
-		while line:
-			line = line.strip ()
-			m = REGEX.match (line)
-			if m:
-				dt = datetime.datetime.strptime (m.group (1), "%Y-%m-%d %H:%M:%S.%f")
-				#~ x.append (m.group (2))
-				x.append (dt)
-				vcc.append (m.group (3))
-				vbat.append (m.group (4))
+		reader = csv.DictReader (fp)
+		for row in reader:
+			dtstr = "%s %s" % (row['date'], row['time'])
+			dtdt = datetime.datetime.strptime (dtstr, "%Y/%m/%d %H:%M:%S")
+			if len (dt) > 0 and dtdt < dt[len (dt) - 1]:
+				print "Ignoring record: %s" % dtstr
 			else:
-				print "Line ignored: %s" % li
-			line = fp.readline ()
+				dt.append (dtdt)
+				vcc.append (float (row['vcc']))
+				vbat.append (float (row['vbat']))
 
-	return x, vcc, vbat
-
-LOGFILE2 = "/tmp/logbat2.txt"
-
-REGEX2 = re.compile ("\[([^]]+)\] ([0-9]+),([0-9]+\.[0-9]+),([0-9]+\.[0-9]+)")
-
-def readData2 ():
-	x = []
-	vcc = []
-	vbat = []
-
-	with open (LOGFILE2, "r") as fp:
-		line = fp.readline ()
-		while line:
-			line = line.strip ()
-			m = REGEX2.match (line)
-			if m:
-				if float (m.group (3)) <= 5 and float (m.group (4)) <= 5:
-					dt = datetime.datetime.strptime (m.group (1), "%Y-%m-%d %H:%M:%S.%f")
-					#~ x.append (m.group (2))
-					x.append (dt)
-					vcc.append (m.group (3))
-					vbat.append (m.group (4))
-					#~ print m.groups ()
-				else:
-					print "Line ignored: %s" % line
-			else:
-				#~ print "Line ignored: %s" % line
-				pass
-			line = fp.readline ()
-
-	return x, vcc, vbat
-
+	return dt, vcc, vbat
 
 plt.title ("Battery Drainage")
 plt.grid (True)
 plt.setp (plt.xticks ()[1], rotation = 30, ha = 'right')
 
-# Enable this for one-shot graph
-if False:
-	x, vcc, vbat = readData ()
-	x2, vcc2, vbat2 = readData2 ()
-	x.extend (x2)
-	vcc.extend (vcc2)
-	vbat.extend (vbat2)
-	#~ start = x[0]
-	#~ xdelta = [(i - start) for i in x]
-	#~ xnew = [datetime.datetime.fromtimestamp (td.total_seconds () - 3600) for td in xdelta]
-	#~ plt.plot (x, vcc, "b", label = "Vcc (incorrect)")
-	plt.plot (x, vbat, "r", label = "Vbat")
-	plt.legend (loc = 'best', fancybox = True, framealpha = 0.5)
-	#~ plt.xticks (range (len (x)), xdelta, rotation = 45, size='small')
-	#~ plt.axis ("auto")
-	plt.show ()
-	sys.exit (0)
+dt, vcc, vbat = readData ()
+print "Average Vcc: %.2f" % (sum (vcc) / len (vcc))
+print "Max/Min Vcc: %.2f/%.2f" % (max (vcc), min (vcc))
+print
 
-x, vcc, vbat = readData ()
-x2, vcc2, vbat2 = readData2 ()
-x.extend (x2)
-vcc.extend (vcc2)
-vbat.extend (vbat2)
-lvcc = plt.plot (x, vcc, "b", label = "Vcc (incorrect)")[0]
-lvbat = plt.plot (x, vbat, "r", label = "Vbat")[0]
-plt.ion ()		# Enable interactive plotting
-while True:
-	x, vcc, vbat = readData ()
-	x2, vcc2, vbat2 = readData2 ()
-	x.extend (x2)
-	vcc.extend (vcc2)
-	vbat.extend (vbat2)
-	#~ start = x[0]
-	#~ xdelta = [(i - start) for i in x]
-	#~ xnew = [datetime.datetime.fromtimestamp (td.total_seconds () - 3600) for td in xdelta]
-	#~ plt.plot (x, vcc, "b", label = "Vcc (incorrect)")
-	#~ plt.plot (x, vbat, "r", label = "Vbat")
-	lvcc.set_xdata (x)
-	lvcc.set_ydata (vcc)
-	lvbat.set_xdata (x)
-	lvbat.set_ydata (vbat)
-	plt.legend (loc = 'best', fancybox = True, framealpha = 0.5)
-	#~ plt.xticks (range (len (x)), xdelta, rotation = 45, size='small')
-	#~ plt.axis ("auto")
-	plt.draw ()
-	plt.pause (8)		# Seconds
+
+def getVbatAtTime (dt, vbat, t):
+	"""Returns battery voltage at time t"""
+	for d, v in zip (dt, vbat):
+		if t <= d:
+			return v
+	return None
+
+# Let's look for a voltage drop of at least 0.2v in 20 min. This means that the
+# battery charge is almost over
+cutoff = None
+for d, v in zip (dt, vbat):
+	tdelta = d + datetime.timedelta (minutes = 20)
+	vt = getVbatAtTime (dt, vbat, tdelta)
+	if vt is not None:
+		#~ print d, v
+		#~ print tdelta, vt
+		vdiff = abs (v - vt)
+		#~ print vdiff
+		#~ print "--"
+		if vdiff >= 0.2 and cutoff is None:
+			cutoff = d, v
+print "Cutoff should have been at %s at %.2f v" % (cutoff[0], cutoff[1])
+
+
+first = dt[0]
+last = dt[len (dt) - 1]
+totsec = (last - first).total_seconds ()
+dur = totsec / (60 * 60)
+print "Battery duration: %.2f hours" % dur
+
+totsec2 = (cutoff[0] - first).total_seconds ()
+dur2 = totsec2 / (60 * 60)
+print "Battery duration with recommended cutoff: %.2f hours" % dur2
+
+totsec3 = (last - cutoff[0]).total_seconds ()
+dur3 = totsec3 / 60
+print "Duration missed with cutoff: %d minutes" % dur3
+
+# Time to get a 20% discharge
+N = 5
+t10 = totsec2 / N
+print "Battery discharges 20%% in %d minutes" % (t10 / 60)
+
+thresholds = []
+x = first
+for j in xrange (0, N + 1):
+	vt = getVbatAtTime (dt, vbat, x)
+	print "Battery had %d%% charge at %s with V = %.2f" % (100 - j * (100 / N), x, vt)
+	thresholds.append (vt)
+	x += datetime.timedelta (seconds = t10)
+#~ print "const byte BATTERY_POINTS[] = {%s};" % ", ".join (str (x) for x in thresholds[1:])	# No need for 1st element
+print "const byte BATTERY_POINTS[] = {%s};" % ", ".join (str (int (x * 100 - 150)) for x in thresholds[1:])	# No need for 1st element
+
+# Plot graph
+plt.plot (dt, vcc, "b", label = "Vcc")
+plt.plot (dt, vbat, "r", label = "Vbat")
+plt.ylabel ('Voltage (V)')
+plt.legend (loc = 'best', fancybox = True, framealpha = 0.5)
+plt.show ()
