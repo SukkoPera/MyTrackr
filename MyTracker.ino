@@ -482,8 +482,8 @@ void decodeGPS () {
 
 // GPS Logfile Columns
 // Column names taken from http://www.gpsbabel.org/htmldoc-development/fmt_unicsv.html
-const char c1[] PROGMEM = "date";
-const char c2[] PROGMEM = "time";
+const char c1[] PROGMEM = "utc_d";
+const char c2[] PROGMEM = "utc_t";
 const char c3[] PROGMEM = "lat";
 const char c4[] PROGMEM = "lon";
 const char c5[] PROGMEM = "ele";
