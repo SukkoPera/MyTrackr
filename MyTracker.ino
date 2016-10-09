@@ -34,6 +34,15 @@ U8GLIB_SSD1306_128X64 u8g (U8G_I2C_OPT_DEV_0 | U8G_I2C_OPT_NO_ACK | U8G_I2C_OPT_
 // Time
 #include <TimeLib.h>
 
+/* Battery voltage points used to indicate remaining battery charge. These can
+ * be fine-tuned as described on the wiki.
+ *
+ * The default values are fine with my 18650's.
+ */
+const byte BATTERY_POINTS_NO = 5;
+const unsigned int BATTERY_POINT_OFFSET = 150;
+const byte BATTERY_POINTS[BATTERY_POINTS_NO] PROGMEM = {222, 204, 191, 185, 166};
+
 
 boolean logEnabled = false;
 
@@ -96,8 +105,8 @@ GpsFix lastLoggedFix = {
 // millis() of last time fix was logged to SD
 unsigned long lastLogMillis = 0;
 
-// Battery voltage
-float batteryVoltage = 0;
+// Battery voltage (mV)
+unsigned int batteryVoltage = 0;
 
 void draw () {
 	static const char naString[] PROGMEM = "N/A";
@@ -130,16 +139,17 @@ void draw () {
 	}
 
 	// Battery icon, drawn by hand (Blink if almost dead)
-	// This is a bit crude, I know...
-	int top = (HEADER_HEIGHT - BAT_HEIGHT) / 2;
 	byte batPerc = 100;
-	if (batteryVoltage <= 2.9)
-		batPerc = 10;
-	else if (batteryVoltage < 3.6)
-		batPerc = 30;
-	else if (batteryVoltage < 3.8)
-		batPerc = 60;
-	if (batPerc > 10 || ((millis () / 1000) % 2) == 0) {
+	for (byte i = 0; i < BATTERY_POINTS_NO; i++) {
+		unsigned int t = (pgm_read_byte (&BATTERY_POINTS[i]) + BATTERY_POINT_OFFSET) * 10;
+		if (batteryVoltage < t) {
+			batPerc -= 100 / BATTERY_POINTS_NO;
+		}
+	}
+	//~ DPRINT (F("Battery percentage: "));
+	//~ DPRINTLN (batPerc);
+	int top = (HEADER_HEIGHT - BAT_HEIGHT) / 2;
+	if (batPerc > 20 || ((millis () / 1000) % 2) == 0) {
 		int batFillWidth = (BAT_WIDTH - 2 - 2) * batPerc / 100.0;
 		u8g.drawFrame (128 - BAT_WIDTH, top, BAT_WIDTH, BAT_HEIGHT);  // Outside box
 		u8g.drawBox (128 - BAT_WIDTH - BAT_TIP, top + (BAT_HEIGHT - BAT_HEIGHT / 2) / 2, BAT_TIP, BAT_HEIGHT / 2);  // Tip
@@ -326,9 +336,9 @@ void measureBattery () {
 		DPRINTLN (reading);
 
 #ifdef REAL_1_1_REF
-		batteryVoltage = REAL_1_1_REF / (float) BATTERY_STEPS * reading / 1000;
+		batteryVoltage = REAL_1_1_REF / (float) BATTERY_STEPS * reading;
 #else
-		batteryVoltage = 5.0 / (float) BATTERY_STEPS * reading;
+		batteryVoltage = 1100 / (float) BATTERY_STEPS * reading;
 #endif
 
 #if defined (BATTERY_R1) and defined (BATTERY_R2)
