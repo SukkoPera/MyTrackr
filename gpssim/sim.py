@@ -12,8 +12,7 @@ from geopy.distance import Distance, vincenty
 class GpsSimulator (object):
 	# Initial position and movement parameters
 	START = (45, 7)
-	#~ INIT_SPD = 3		# m/s (3 ~= 10 km/h)
-	INIT_SPD = 15
+	INIT_SPD = 3		# m/s (3 ~= 10 km/h)
 	INIT_TRK = 135
 	DELTA_SPD = 2
 	DELTA_TRK = 5
