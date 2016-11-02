@@ -562,10 +562,12 @@ void logPosition () {
 				if (currentFix.alt.valid)
 					writer.print (currentFix.alt.value);
 
-				// Speed (knots)
+				// Speed (km/h, use explicit label for gpsbabel understanding)
 				writer.newField ();
-				if (currentFix.speed.valid)
+				if (currentFix.speed.valid) {
 					writer.print (currentFix.speed.value);
+					writer.print (F("kmh"));
+				}
 
 				// Course/Track/Heading
 				writer.newField ();
