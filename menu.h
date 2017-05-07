@@ -48,6 +48,10 @@ public:
 
 		lb.activate ();
 	}
+
+	bool isSelected (void) override {
+		return logFreq == freq;
+	}
 };
 
 class MenuItemLogDist: public StaticMenuItem {
@@ -67,6 +71,10 @@ public:
 
 		lb.activate ();
 	}
+
+	bool isSelected (void) override {
+		return logDist == dist;
+	}
 };
 
 #ifdef ENABLE_ROTATION_MENU
@@ -85,6 +93,10 @@ public:
 		DPRINTLN (logRot);
 
 		lb.activate ();
+	}
+
+	bool isSelected (void) override {
+		return logRot == rot;
 	}
 };
 #endif
@@ -164,6 +176,10 @@ public:
 
 		ltb.activate ();
 	}
+
+	bool isSelected (void) override {
+		return utcOffset == offset;
+	}
 };
 
 class MenuItemTimeDst: public StaticMenuItem {
@@ -181,6 +197,10 @@ public:
 		DPRINTLN (dstMode);
 
 		ltb.activate ();
+	}
+
+	bool isSelected (void) override {
+		return dstMode == mode;
 	}
 };
 

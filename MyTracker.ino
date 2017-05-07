@@ -48,7 +48,7 @@ boolean logEnabled = false;
 
 // Interval between two consecutive log updates
 byte logFreq = DEFAULT_LOG_INTERVAL;
-unsigned int logDist = DEFAULT_LOG_DISTANCE;
+int logDist = DEFAULT_LOG_DISTANCE;
 
 #ifdef ENABLE_ROTATION_MENU
 LogRotation logRot = DEFAULT_LOG_ROTATION;		// FIXME: TBD

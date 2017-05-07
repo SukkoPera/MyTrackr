@@ -12,6 +12,10 @@ public:
 
 	virtual void activate (void) {
 	}
+
+	virtual bool isSelected (void) {
+		return false;
+	}
 };
 
 typedef MenuItem* const * Menu;
@@ -43,7 +47,6 @@ private:
 	boolean shown;
 
 public:
-
 	void begin (const Menu& m, byte _nLines, boolean _shown = false) {
 		nLines = _nLines;
 		shown = _shown;
@@ -82,7 +85,12 @@ public:
 					u8g.setDefaultBackgroundColor ();
 				}
 
-				u8g.drawStr (d, 16 + i * h, item -> getName ());
+				u8g.setPrintPos (d, 16 + i * h);
+				u8g.print (item -> getName ());
+
+				if (item -> isSelected ()) {
+					u8g.print (F(" *"));
+				}
 			}
 		}
 	}
