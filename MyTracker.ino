@@ -57,6 +57,15 @@ LogRotation logRot = DEFAULT_LOG_ROTATION;		// FIXME: TBD
 signed char utcOffset = DEFAULT_TZ_OFFSET;
 DaylightSavingMode dstMode = DST_AUTO;
 
+// "Alive led": blink for 10 ms every 15 s
+// Get library at https://github.com/SukkoPera/AABlink
+#include <AABlink.h>
+AABlinkShort aliveLed;
+#define ALIVE_LED_PIN 9
+#define ALIVE_LED_ON_TIME 10
+#define ALIVE_LED_OFF_TIME 15000UL
+
+
 #include "menu.h"
 
 #define HEADER_HEIGHT 16
@@ -385,6 +394,9 @@ void setup () {
 	u8g.setFont (u8g_font_6x10);
 	u8g.setFontPosTop ();
 	u8g.setFontRefHeightExtendedText ();
+
+	// Alive led
+	aliveLed.begin (ALIVE_LED_PIN, ALIVE_LED_ON_TIME, ALIVE_LED_OFF_TIME);
 }
 
 void loop () {
@@ -392,6 +404,7 @@ void loop () {
 	logPosition ();
 	measureBattery ();
 	updateMenu ();
+	aliveLed.loop ();
 }
 
 byte dstOffset () {
