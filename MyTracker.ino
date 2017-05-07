@@ -26,8 +26,8 @@ boolean sdAvailable = false;
 
 
 // Display
-#include "U8glib.h"
-U8GLIB_SSD1306_128X64 u8g (U8G_I2C_OPT_DEV_0 | U8G_I2C_OPT_NO_ACK | U8G_I2C_OPT_FAST);
+#include <U8g2lib.h>
+U8G2_SSD1306_128X64_NONAME_1_HW_I2C u8g2 (U8G2_R0);
 
 #include "enums.h"
 
@@ -120,7 +120,7 @@ unsigned int batteryVoltage = 0;
 void draw () {
 	static const char naString[] PROGMEM = "N/A";
 
-	u8g.setDefaultForegroundColor ();
+	u8g2.setDrawColor (1);
 
 	/***************************************************************************
 	 * Header
@@ -129,22 +129,22 @@ void draw () {
 	// Sat icon (Blink if currentFix is not valid)
 	time_t tt = makeTime (currentFix.time) + (utcOffset + dstOffset ()) * SECS_PER_HOUR;
 	if ((currentFix.pos.valid && timeStatus () == timeSet && now () - tt < 10) || ((millis () / 1000) % 2) == 0) {
-		u8g.drawXBMP (0, 0, sat_width, sat_height, sat_bits);
+		u8g2.drawXBMP (0, 0, sat_width, sat_height, sat_bits);
 	}
 
 	// Number of sats in view
-	u8g.setPrintPos (20, 3);
-	u8g.print (currentFix.nsats);
+	u8g2.setCursor (20, 3);
+	u8g2.print (currentFix.nsats);
 
 	// SD icon (blink if SD failed)
 	if (sdAvailable || ((millis () / 1000) % 2) == 0) {
-		u8g.drawXBMP (90, 0, microsd_width, microsd_height, microsd_bits);
+		u8g2.drawXBMP (90, 0, microsd_width, microsd_height, microsd_bits);
 	}
 
 	// Log status
 	if (logEnabled) {
-		u8g.setPrintPos (80, 3);
-		u8g.print ('L');
+		u8g2.setCursor (80, 3);
+		u8g2.print ('L');
 	}
 
 	// Battery icon, drawn by hand (Blink if almost dead)
@@ -160,9 +160,9 @@ void draw () {
 	int top = (HEADER_HEIGHT - BAT_HEIGHT) / 2;
 	if (batPerc > 20 || ((millis () / 1000) % 2) == 0) {
 		int batFillWidth = (BAT_WIDTH - 2 - 2) * batPerc / 100.0;
-		u8g.drawFrame (128 - BAT_WIDTH, top, BAT_WIDTH, BAT_HEIGHT);  // Outside box
-		u8g.drawBox (128 - BAT_WIDTH - BAT_TIP, top + (BAT_HEIGHT - BAT_HEIGHT / 2) / 2, BAT_TIP, BAT_HEIGHT / 2);  // Tip
-		u8g.drawBox (128 - batFillWidth - 2, top + 2, batFillWidth, BAT_HEIGHT - 4);  // Filling
+		u8g2.drawFrame (128 - BAT_WIDTH, top, BAT_WIDTH, BAT_HEIGHT);  // Outside box
+		u8g2.drawBox (128 - BAT_WIDTH - BAT_TIP, top + (BAT_HEIGHT - BAT_HEIGHT / 2) / 2, BAT_TIP, BAT_HEIGHT / 2);  // Tip
+		u8g2.drawBox (128 - batFillWidth - 2, top + 2, batFillWidth, BAT_HEIGHT - 4);  // Filling
 	}
 
 
@@ -173,79 +173,79 @@ void draw () {
 		switch (((millis () / 1000L) / 6) % 3) {
 			case 0:
 				// Position icon
-				u8g.drawXBMP (20, 33, position_width, position_height, position_bits);
+				u8g2.drawXBMP (20, 33, position_width, position_height, position_bits);
 
 				// Coordinates
 				if (currentFix.pos.valid) {
-					u8g.setPrintPos (52, 27);
-					u8g.print (currentFix.pos.lat, LATLON_PREC);
-					u8g.setPrintPos (52, 37);
-					u8g.print (currentFix.pos.lon, LATLON_PREC);
+					u8g2.setCursor (52, 27);
+					u8g2.print (currentFix.pos.lat, LATLON_PREC);
+					u8g2.setCursor (52, 37);
+					u8g2.print (currentFix.pos.lon, LATLON_PREC);
 				} else {
-					u8g.setPrintPos (52, 27);
-					u8g.print (PSTR_TO_F (naString));
-					u8g.setPrintPos (52, 37);
-					u8g.print (PSTR_TO_F (naString));
+					u8g2.setCursor (52, 27);
+					u8g2.print (PSTR_TO_F (naString));
+					u8g2.setCursor (52, 37);
+					u8g2.print (PSTR_TO_F (naString));
 				}
 
-				u8g.setPrintPos (52, 47);
+				u8g2.setCursor (52, 47);
 				if (currentFix.alt.valid) {
-					u8g.print (currentFix.alt.value);
-					u8g.print (F(" m"));
+					u8g2.print (currentFix.alt.value);
+					u8g2.print (F(" m"));
 				} else {
-					u8g.print (PSTR_TO_F (naString));
+					u8g2.print (PSTR_TO_F (naString));
 				}
 
 				break;
 			case 1: {
 				// Compass icon
-				u8g.drawXBMP (20, 33, compass_width, compass_height, compass_bits);
+				u8g2.drawXBMP (20, 33, compass_width, compass_height, compass_bits);
 
-				u8g.setPrintPos (52, 32);
+				u8g2.setCursor (52, 32);
 				if (currentFix.course.valid) {
-					u8g.print (currentFix.course.value);
-					u8g.print ((char) 176);   // Degrees symbol, font-dependent
+					u8g2.print (currentFix.course.value);
+					u8g2.print ((char) 176);   // Degrees symbol, font-dependent
 				} else {
-					u8g.print (PSTR_TO_F (naString));
+					u8g2.print (PSTR_TO_F (naString));
 				}
 
-				u8g.setPrintPos (52, 42);
+				u8g2.setCursor (52, 42);
 				if (currentFix.speed.valid) {
-					u8g.print (currentFix.speed.value);
-					u8g.print (F(" Km/h"));
+					u8g2.print (currentFix.speed.value);
+					u8g2.print (F(" Km/h"));
 				} else {
-					u8g.print (PSTR_TO_F (naString));
+					u8g2.print (PSTR_TO_F (naString));
 				}
 				break;
 			} case 2:
 				// Clock icon
-				u8g.drawXBMP (20, 33, clock_width, clock_height, clock_bits);
+				u8g2.drawXBMP (20, 33, clock_width, clock_height, clock_bits);
 
 				if (timeStatus () != timeNotSet) {
-					u8g.setPrintPos (52, 32);
-					u8g.print (day ());
-					u8g.print ('/');
-					u8g.print (month ());
-					u8g.print ('/');
-					u8g.print (year ());
+					u8g2.setCursor (52, 32);
+					u8g2.print (day ());
+					u8g2.print ('/');
+					u8g2.print (month ());
+					u8g2.print ('/');
+					u8g2.print (year ());
 
-					u8g.setPrintPos (52, 42);
+					u8g2.setCursor (52, 42);
 					if (hour () < 10)
-						u8g.print (0);
-					u8g.print (hour ());
-					u8g.print (':');
+						u8g2.print (0);
+					u8g2.print (hour ());
+					u8g2.print (':');
 					if (minute () < 10)
-						u8g.print (0);
-					u8g.print (minute ());
-					u8g.print (':');
+						u8g2.print (0);
+					u8g2.print (minute ());
+					u8g2.print (':');
 					if (second () < 10)
-						u8g.print (0);
-					u8g.print (second ());
+						u8g2.print (0);
+					u8g2.print (second ());
 				} else {
-					u8g.setPrintPos (52, 32);
-					u8g.print (PSTR_TO_F (naString));
-					u8g.setPrintPos (52, 42);
-					u8g.print (PSTR_TO_F (naString));
+					u8g2.setCursor (52, 32);
+					u8g2.print (PSTR_TO_F (naString));
+					u8g2.setCursor (52, 42);
+					u8g2.print (PSTR_TO_F (naString));
 				}
 				break;
 		}
@@ -289,7 +289,7 @@ void updateMenu (void) {
 
 		if (sleeping) {
 			// Turn screen back on
-			u8g.sleepOff ();
+			u8g2.setPowerSave (false);
 			sleeping = false;
 		} else {
 #endif
@@ -315,22 +315,22 @@ void updateMenu (void) {
 		}
 #ifdef SCREEN_OFF_DELAY
 	} else if (key == KEY_NONE && millis () - lastKeyPress >= SCREEN_OFF_DELAY) {
-		u8g.sleepOn ();
+		u8g2.setPowerSave (true);
 		sleeping = true;
 	}
 #endif
 
 	lastKey = key;
 
-	// u8g Picture loop
+	// u8g2 Picture loop
 #ifdef SCREEN_OFF_DELAY
 	if (!sleeping) {
 #endif
-		u8g.firstPage ();
+		u8g2.firstPage ();
 		do {
 			draw ();
 			menuHandler.draw ();
-		} while (u8g.nextPage ());
+		} while (u8g2.nextPage ());
 #ifdef SCREEN_OFF_DELAY
 	}
 #endif
@@ -400,9 +400,10 @@ void setup () {
 #endif
 
 	// We always use these U8G settings
-	u8g.setFont (u8g_font_6x10);
-	u8g.setFontPosTop ();
-	u8g.setFontRefHeightExtendedText ();
+	u8g2.begin ();
+	u8g2.setFont (u8g2_font_6x10_mr);
+	u8g2.setFontPosTop ();
+	u8g2.setFontRefHeightExtendedText ();
 
 	// Alive led
 	aliveLed.begin (ALIVE_LED_PIN, ALIVE_LED_ON_TIME, ALIVE_LED_OFF_TIME);

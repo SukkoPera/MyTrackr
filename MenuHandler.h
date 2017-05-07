@@ -70,19 +70,21 @@ public:
 
 	void draw () {
 		if (shown) {
-			byte h = u8g.getFontAscent () - u8g.getFontDescent ();
-			byte w = u8g.getWidth ();
+			byte h = u8g2.getAscent () - u8g2.getDescent ();
+			byte w = u8g2.getDisplayWidth ();
 			MenuItem *item = NULL;
 			for (byte i = 0; i < nLines && (item = reinterpret_cast<MenuItem *> (pgm_read_word (&(cur[firstItem + i])))); i++) {
-				byte d = (w - u8g.getStrWidth (item -> getName ())) / 2;
-				u8g.setDefaultForegroundColor ();
+				//~ byte d = (w - u8g2.getStrWidth (item -> getName ())) / 2;
+				byte d = 0;		// FIXME
+				u8g2.setDrawColor (1);
 
 				if (firstItem + i == curItem) {
-					u8g.drawBox (0, 16 + i * h + 1, w, h);
-					u8g.setDefaultBackgroundColor ();
+					u8g2.drawBox (0, 16 + i * h + 1, w, h);
+					u8g2.setDrawColor (0);
 				}
 
-				u8g.drawStr (d, 16 + i * h, item -> getName ());
+				u8g2.setCursor (d, 16 + i * h);
+				u8g2.print (item -> getName ());
 			}
 		}
 	}
