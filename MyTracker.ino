@@ -177,16 +177,25 @@ void draw () {
 
 				// Coordinates
 				if (currentFix.pos.valid) {
-					u8g.setPrintPos (52, 32);
+					u8g.setPrintPos (52, 27);
 					u8g.print (currentFix.pos.lat, 6);
-					u8g.setPrintPos (52, 42);
+					u8g.setPrintPos (52, 37);
 					u8g.print (currentFix.pos.lon, 6);
 				} else {
-					u8g.setPrintPos (52, 32);
+					u8g.setPrintPos (52, 27);
 					u8g.print (PSTR_TO_F (naString));
-					u8g.setPrintPos (52, 42);
+					u8g.setPrintPos (52, 37);
 					u8g.print (PSTR_TO_F (naString));
 				}
+
+				u8g.setPrintPos (52, 47);
+				if (currentFix.alt.valid) {
+					u8g.print (currentFix.alt.value);
+					u8g.print (F(" m"));
+				} else {
+					u8g.print (PSTR_TO_F (naString));
+				}
+
 				break;
 			case 1: {
 				// Compass icon
