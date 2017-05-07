@@ -178,9 +178,9 @@ void draw () {
 				// Coordinates
 				if (currentFix.pos.valid) {
 					u8g.setPrintPos (52, 27);
-					u8g.print (currentFix.pos.lat, 6);
+					u8g.print (currentFix.pos.lat, LATLON_PREC);
 					u8g.setPrintPos (52, 37);
-					u8g.print (currentFix.pos.lon, 6);
+					u8g.print (currentFix.pos.lon, LATLON_PREC);
 				} else {
 					u8g.setPrintPos (52, 27);
 					u8g.print (PSTR_TO_F (naString));
