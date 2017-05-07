@@ -61,6 +61,8 @@ public:
 
 	void show () {
 		shown = true;
+		curItem = 0;
+		firstItem = 0;
 	}
 
 	void hide () {
