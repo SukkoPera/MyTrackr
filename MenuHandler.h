@@ -78,7 +78,7 @@ public:
 			byte h = u8g.getFontAscent () - u8g.getFontDescent ();
 			byte w = u8g.getWidth ();
 			MenuItem *item = NULL;
-			for (byte i = 0; i < nLines && (item = reinterpret_cast<MenuItem *> (pgm_read_word (&(cur[firstItem + i])))); i++) {
+			for (byte i = 0; i < nLines && (item = reinterpret_cast<MenuItem *> (pgm_read_ptr (&(cur[firstItem + i])))); i++) {
 				byte d = (w - u8g.getStrWidth (item -> getName ())) / 2;
 				u8g.setDefaultForegroundColor ();
 
@@ -115,7 +115,7 @@ public:
 	}
 
 	void next () {
-		MenuItem *item = reinterpret_cast<MenuItem *> (pgm_read_word (&(cur[++curItem])));
+		MenuItem *item = reinterpret_cast<MenuItem *> (pgm_read_ptr (&(cur[++curItem])));
 		if (!item) {
 			curItem = 0;
 			firstItem = 0;
@@ -125,7 +125,7 @@ public:
 	}
 
 	void activate () {
-		MenuItem *item = reinterpret_cast<MenuItem *> (pgm_read_word (&(cur[curItem])));
+		MenuItem *item = reinterpret_cast<MenuItem *> (pgm_read_ptr (&(cur[curItem])));
 		item -> activate ();
 	}
 };
