@@ -62,7 +62,7 @@
 #define KEY_SELECT_PIN 8
 
 // Time interval from last keypress to turn screen off (ms)
-#define SCREEN_OFF_DELAY 18000UL
+#define SCREEN_OFF_DELAY 30000UL
 
 // Analog pin used to measure battery level
 #define BATTERY_PIN A0
