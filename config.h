@@ -23,7 +23,7 @@
  * 6 digits allows for precision up to 4 inches. See here for details:
  * http://lightmanufacturingsystems.com/heliostats/support/decimal-latitude-longitude-accuracy/
  */
-#define LATLON_PREC 7
+#define LATLON_PREC 6
 
 // Default logging interval (sec)
 #define DEFAULT_LOG_INTERVAL 10
