@@ -34,9 +34,8 @@
 #define DEFAULT_LOG_DISTANCE 0
 
 /* Define to enable log rotation menu
- * NOT YET IMPLEMENTED
  */
-//~ #define ENABLE_ROTATION_MENU
+#define ENABLE_ROTATION_MENU
 
 /* Default log rotation interval: NOT YET IMPLEMENTED
  */

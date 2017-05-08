@@ -47,7 +47,7 @@ byte logFreq = DEFAULT_LOG_INTERVAL;
 int logDist = DEFAULT_LOG_DISTANCE;
 
 #ifdef ENABLE_ROTATION_MENU
-LogRotation logRot = DEFAULT_LOG_ROTATION;		// FIXME: TBD
+LogRotation logRot = DEFAULT_LOG_ROTATION;
 #endif
 
 signed char utcOffset = DEFAULT_TZ_OFFSET;
@@ -485,6 +485,73 @@ const char* const cols[GPS_LOG_COLS] PROGMEM = {
 	c1, c2, c3, c4, c5, c6, c7, c8, c9
 };
 
+#define MAX_FILENAME (8 + 1)
+
+void itoa_2digits (int val, char *s) {
+	*s = (val / 10) + '0';
+
+	*(s + 1) = val % 10 + '0';
+
+	*(s + 2) = '\0';
+}
+
+const char* makeFileName (char fn[MAX_FILENAME]) {
+#ifdef ENABLE_ROTATION_MENU
+	switch (logRot) {
+		default:
+		case LOGROT_OFF:
+			// Use a generic "GPS.CSV"
+			fn[0] = 'G';
+			fn[1] = 'P';
+			fn[2] = 'S';
+			fn[3] = '\0';
+			break;
+		case LOGROT_HOURLY:
+			// YYMMDD'H'x.csv (x: 0=A, 1=B... 23=W), e.g.: 170508HA.csv
+			itoa_2digits (currentFix.time.Year - 30, fn);
+			itoa_2digits (currentFix.time.Month, fn + 2);
+			itoa_2digits (currentFix.time.Day, fn + 4);
+			fn[6] = 'H';
+			fn[7] = currentFix.time.Hour + 'A';
+			fn[8] = '\0';
+			break;
+		case LOGROT_DAILY:
+			// YYYYMMDD.CSV, e.g.: 20170508.CSV
+			itoa (tmYearToCalendar (currentFix.time.Year), fn, 10);
+			itoa_2digits (currentFix.time.Month, fn + 4);
+			itoa_2digits (currentFix.time.Day, fn + 6);
+			break;
+		case LOGROT_WEEKLY: {
+			// YYYY'W'WW.csv, e.g.: 2017W14.csv
+			itoa (tmYearToCalendar (currentFix.time.Year), fn, 10);
+			fn[4] = 'W';
+
+			// https://en.wikipedia.org/wiki/ISO_week_date#Calculation
+			byte daysPerMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+			int d = 10 + currentFix.time.Day;
+			for (byte i = 1; i < currentFix.time.Month; i++)
+				d += daysPerMonth[i - 1];
+			d -= (currentFix.time.Wday == 1 ? 7 : currentFix.time.Wday - 1);
+			itoa_2digits (d / 7, fn + 5);
+			break;
+		} case LOGROT_MONTHLY:
+			// YYYY'M'MM.csv, e.g.: 2017M05.csv
+			itoa (tmYearToCalendar (currentFix.time.Year), fn, 10);
+			fn[4] = 'M';
+			itoa_2digits (currentFix.time.Month, fn + 5);
+			break;
+	}
+
+	// Append extension
+	strncat_P (fn, PSTR (".CSV"), MAX_FILENAME);
+#else
+	// Use a generic "GPS.CSV"
+	strncpy_P (fn, PSTR ("GPS.CSV"), MAX_FILENAME);
+#endif
+
+	return fn;
+}
+
 void logPosition () {
 	if (logEnabled) {
 		time_t tcur = makeTime (currentFix.time);
@@ -502,8 +569,12 @@ void logPosition () {
 			// Gotta log!
 			DPRINTLN (F("Logging GPS fix"));
 
-			if (!writer.openFile ("GPS.CSV", GPS_LOG_COLS, cols)) {
-				DPRINTLN (F("GPS CSV init failed"));
+			char fn[MAX_FILENAME];
+			makeFileName (fn);
+			DPRINT (F("Opening logging file: "));
+			DPRINTLN (fn);
+			if (!writer.openFile (fn, GPS_LOG_COLS, cols)) {
+				DPRINTLN (F("Cannot open logfile"));
 				sdAvailable = false;
 				logEnabled = false;
 			} else {

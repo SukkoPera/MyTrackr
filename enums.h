@@ -15,6 +15,7 @@ enum _PACKED_ Key {
 	KEY_BACK
 };
 
+#ifdef ENABLE_ROTATION_MENU
 enum _PACKED_ LogRotation {
   LOGROT_OFF = 0,
   LOGROT_HOURLY = 60,
@@ -22,6 +23,7 @@ enum _PACKED_ LogRotation {
   LOGROT_WEEKLY = 7,
   LOGROT_MONTHLY = 30
 };
+#endif
 
 enum _PACKED_ DaylightSavingMode {
   DST_AUTO,
