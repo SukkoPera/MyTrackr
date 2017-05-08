@@ -34,16 +34,12 @@ U8GLIB_SSD1306_128X64 u8g (U8G_I2C_OPT_DEV_0 | U8G_I2C_OPT_NO_ACK | U8G_I2C_OPT_
 // Time
 #include <TimeLib.h>
 
-/* Battery voltage points used to indicate remaining battery charge. These can
- * be fine-tuned as described on the wiki.
- *
- * The default values are fine with my 18650's.
- */
-const byte BATTERY_POINTS_NO = 5;
-const unsigned int BATTERY_POINT_OFFSET = 150;
-const byte BATTERY_POINTS[BATTERY_POINTS_NO] PROGMEM = {222, 204, 191, 185, 166};
+// "Alive led": get library at https://github.com/SukkoPera/AABlink
+#include <AABlink.h>
+AABlinkShort aliveLed;
 
 
+// Global variables
 boolean logEnabled = false;
 
 // Interval between two consecutive log updates
@@ -56,40 +52,6 @@ LogRotation logRot = DEFAULT_LOG_ROTATION;		// FIXME: TBD
 
 signed char utcOffset = DEFAULT_TZ_OFFSET;
 DaylightSavingMode dstMode = DST_AUTO;
-
-// "Alive led": blink for 10 ms every 15 s
-// Get library at https://github.com/SukkoPera/AABlink
-#include <AABlink.h>
-AABlinkShort aliveLed;
-#define ALIVE_LED_PIN 9
-#define ALIVE_LED_ON_TIME 10
-#define ALIVE_LED_OFF_TIME 15000UL
-
-
-#include "menu.h"
-
-#define HEADER_HEIGHT 16
-
-struct Position {
-	float lat;
-	float lon;
-	boolean valid;
-};
-
-struct ValidFloat {
-	float value;
-	boolean valid;
-};
-
-struct GpsFix {
-	Position pos;
-	ValidFloat alt;			// Meters
-	ValidFloat course;		// Degrees from True North
-	ValidFloat speed;		// km/h
-	ValidFloat hdop;
-	TimeElements time;
-	unsigned int nsats;
-};
 
 GpsFix currentFix = {
 	{0, 0, false},
@@ -116,6 +78,11 @@ unsigned long lastLogMillis = 0;
 
 // Battery voltage (mV)
 unsigned int batteryVoltage = 0;
+
+
+// Menu (This goes after globals, as it needs to access some of them them)
+#include "menu.h"
+
 
 void draw () {
 	static const char naString[] PROGMEM = "N/A";

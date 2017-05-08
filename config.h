@@ -64,6 +64,13 @@
 // Time interval from last keypress to turn screen off (ms)
 #define SCREEN_OFF_DELAY 30000UL
 
+// "Alive led": pin led is connected to
+#define ALIVE_LED_PIN 9
+
+// "Alive led": blink for 10 ms every 15 s
+#define ALIVE_LED_ON_TIME 10
+#define ALIVE_LED_OFF_TIME 15000UL
+
 // Analog pin used to measure battery level
 #define BATTERY_PIN A0
 
@@ -94,6 +101,15 @@
  */
 #define BATTERY_R1 1018000UL
 #define BATTERY_R2 331000UL
+
+/* Battery voltage points used to indicate remaining battery charge. These can
+ * be fine-tuned as described on the wiki.
+ *
+ * The default values are fine with my 18650's.
+ */
+const byte BATTERY_POINTS_NO = 5;
+const unsigned int BATTERY_POINT_OFFSET = 150;
+const byte BATTERY_POINTS[BATTERY_POINTS_NO] PROGMEM = {222, 204, 191, 185, 166};
 
 /* DEFINE this to DISABLE debug messages
  */

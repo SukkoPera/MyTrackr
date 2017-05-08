@@ -1,5 +1,11 @@
+#include <TimeLib.h>
+
 // We want enums to only use 1 byte
-#define _PACKED_ __attribute__ ((packed))
+#ifdef __GNUC__
+	#define _PACKED_ __attribute__ ((packed))
+#else
+	#define _PACKED_
+#endif
 
 enum _PACKED_ Key {
 	KEY_NONE,
@@ -21,4 +27,25 @@ enum _PACKED_ DaylightSavingMode {
   DST_AUTO,
   DST_ON,
   DST_OFF
+};
+
+struct Position {
+	float lat;
+	float lon;
+	boolean valid;
+};
+
+struct ValidFloat {
+	float value;
+	boolean valid;
+};
+
+struct GpsFix {
+	Position pos;
+	ValidFloat alt;			// Meters
+	ValidFloat course;		// Degrees from True North
+	ValidFloat speed;		// km/h
+	ValidFloat hdop;
+	TimeElements time;
+	unsigned int nsats;
 };

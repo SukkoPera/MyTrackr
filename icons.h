@@ -1,3 +1,6 @@
+// Height of header space
+#define HEADER_HEIGHT 16
+
 #define sat_width 16
 #define sat_height 16
 const unsigned char sat_bits[] PROGMEM = {
