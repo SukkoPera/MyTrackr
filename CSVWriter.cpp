@@ -69,9 +69,9 @@ boolean CSVWriter::closeFile () {
 
 #if defined (ENABLE_SD_FATLIB) || defined (ENABLE_SD_FAT16)
 	if (file.isOpen ()) {
-#endif
 		ret = file.close ();
 	}
+#endif
 
 	return ret;
 }
