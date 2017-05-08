@@ -94,16 +94,24 @@ class GpsSimulator (object):
 		# $GPGGA,hhmmss.ss,Latitude,N,Longitude,E,FS,NoSV,HDOP,msl,m,Altref,m,DiffAge,DiffStation*cs<CR><LF>
 		# Example:
 		# $GPGGA,092725.00,4717.11399,N,00833.91590,E,1,8,1.01,499.6,M,48.0,M,,0*5B
-		sentence = "$GPGGA,%s,%011.6f,%c,%012.6f,%c,1,%d,%.2f,%f,M,0,M,,,,*??" % (self.now.strftime ("%H%M%S"), lat[0], lat[1], lon[0], lon[1], self.nsat, self.hdop, alt)
+		sentence = "$GPGGA,%s,%011.6f,%c,%012.6f,%c,1,%d,%.2f,%f,M,0,M,,,,*??" % (self.now.strftime ("%H%M%S.00"), lat[0], lat[1], lon[0], lon[1], self.nsat, self.hdop, alt)
 		ck = self._calc_checksum (sentence)
-		sentence = sentence[:-2] + hex (ck)[2:].upper ()
+		sentence = sentence[:-2] + "%02X" % ck
 		sentences.append (sentence)
 
 		# GPRMC - Recommended Minimum
 		# $GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A
-		sentence = "$GPRMC,%s,A,%011.6f,%c,%012.6f,%c,%.2f,%.2f,%s,,,A*??" % (self.now.strftime ("%H%M%S"), lat[0], lat[1], lon[0], lon[1], self._msToKnots (self.spd), self.trk, self.now.strftime ("%d%m%y"))
+		sentence = "$GPRMC,%s,A,%011.6f,%c,%012.6f,%c,%.2f,%.2f,%s,,,A*??" % (self.now.strftime ("%H%M%S.00"), lat[0], lat[1], lon[0], lon[1], self._msToKnots (self.spd), self.trk, self.now.strftime ("%d%m%y"))
 		ck = self._calc_checksum (sentence)
-		sentence = sentence[:-2] + hex (ck)[2:].upper ()
+		sentence = sentence[:-2] + "%02X" % ck
+		sentences.append (sentence)
+
+		# GPGLL - Geographic position, Latitude and Longitude
+		# $GPGLL,4505.32567,N,00740.01892,E,215929.00,A*6D
+		# SEND LAST!
+		sentence = "$GPGLL,%011.6f,%c,%012.6f,%c,%s,A*??" % (lat[0], lat[1], lon[0], lon[1], self.now.strftime ("%H%M%S.00"))
+		ck = self._calc_checksum (sentence)
+		sentence = sentence[:-2] + "%02X" % ck
 		sentences.append (sentence)
 
 		return sentences
