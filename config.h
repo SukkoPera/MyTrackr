@@ -18,6 +18,9 @@
 // SD Slave-Select (SS, also known as CS) pin
 #define SD_CHIPSELECT 10
 
+// Time a fix is considered valid (sec)
+#define DATA_VALID_TIME 10
+
 /* Number of decimal digits to use when logging latitude and longitude.
  *
  * 6 digits allows for precision up to 4 inches. See here for details:

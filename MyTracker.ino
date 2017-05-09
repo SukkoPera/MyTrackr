@@ -98,7 +98,7 @@ void draw () {
 
 	// Sat icon (Blink if currentFix is not valid)
 	time_t tt = makeTime (currentFix.time) + (utcOffset + dstOffset ()) * SECS_PER_HOUR;
-	if ((currentFix.pos.valid && timeStatus () == timeSet && now () - tt < 10) || ((millis () / 1000) % 2) == 0) {
+	if ((currentFix.pos.valid && timeStatus () == timeSet && now () - tt < DATA_VALID_TIME) || ((millis () / 1000) % 2) == 0) {
 		u8g.drawXBMP (0, 0, sat_width, sat_height, sat_bits);
 	}
 
