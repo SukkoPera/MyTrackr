@@ -17,18 +17,18 @@ enum _PACKED_ Key {
 
 #ifdef ENABLE_ROTATION_MENU
 enum _PACKED_ LogRotation {
-  LOGROT_OFF = 0,
-  LOGROT_HOURLY = 60,
-  LOGROT_DAILY = 24,
-  LOGROT_WEEKLY = 7,
-  LOGROT_MONTHLY = 30
+	LOGROT_OFF = 0,
+	LOGROT_HOURLY = 60,
+	LOGROT_DAILY = 24,
+	LOGROT_WEEKLY = 7,
+	LOGROT_MONTHLY = 30
 };
 #endif
 
 enum _PACKED_ DaylightSavingMode {
-  DST_AUTO,
-  DST_ON,
-  DST_OFF
+	DST_AUTO,
+	DST_ON,
+	DST_OFF
 };
 
 struct Position {
