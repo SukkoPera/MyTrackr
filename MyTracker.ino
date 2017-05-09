@@ -8,6 +8,7 @@
 #else
 	#define GPS_SERIAL Serial
 #endif
+
 #define GPS_BAUD 9600
 
 #define GPS_INTERVAL 50
@@ -44,7 +45,9 @@ boolean logEnabled = false;
 
 // Interval between two consecutive log updates
 byte logFreq = DEFAULT_LOG_INTERVAL;
+#ifdef ENABLE_DISTANCE_MENU
 int logDist = DEFAULT_LOG_DISTANCE;
+#endif
 
 #ifdef ENABLE_ROTATION_MENU
 LogRotation logRot = DEFAULT_LOG_ROTATION;
@@ -562,9 +565,11 @@ void logPosition () {
 			DPRINTLN (F("Skipping log, because fix unchanged"));
 		} else if (!currentFix.pos.valid) {
 			DPRINTLN (F("Skipping log because no fix detected"));
+#ifdef ENABLE_DISTANCE_MENU
 		} else if (logDist > 0 && lastLoggedFix.pos.valid &&
 				TinyGPS::distance_between (lastLoggedFix.pos.lat, lastLoggedFix.pos.lon, currentFix.pos.lat, currentFix.pos.lon) < logDist) {
 			DPRINTLN (F("Skipping log because too close to last fix"));
+#endif
 		} else {
 			// Gotta log!
 			DPRINTLN (F("Logging GPS fix"));

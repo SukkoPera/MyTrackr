@@ -28,6 +28,10 @@
 // Default logging interval (sec)
 #define DEFAULT_LOG_INTERVAL 10
 
+/* Define to enable log distance menu
+ */
+#define ENABLE_DISTANCE_MENU
+
 /* Default logging distance: position will not be logged unless it is at least
  * this far from the previously logged position (meters, 0 = disabled)
  */

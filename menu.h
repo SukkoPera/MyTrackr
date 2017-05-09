@@ -54,6 +54,7 @@ public:
 	}
 };
 
+#ifdef ENABLE_DISTANCE_MENU
 class MenuItemLogDist: public StaticMenuItem {
 private:
 	int dist;
@@ -76,6 +77,7 @@ public:
 		return logDist == dist;
 	}
 };
+#endif
 
 #ifdef ENABLE_ROTATION_MENU
 class MenuItemLogRot: public StaticMenuItem {
@@ -114,6 +116,7 @@ MenuItemLogFreq lf60 (mlf60, 60);
 MenuItem * const subMenuLogFreq[] PROGMEM = {&lf1, &lf5, &lf10, &lf30, &lf60, &lb, NULL};
 
 const char mlOff[] PROGMEM = "Off";
+#ifdef ENABLE_DISTANCE_MENU
 MenuItemLogDist ldOff (mlOff, 0);
 const char ml10[] PROGMEM = "10 m";
 MenuItemLogDist ld10 (ml10, 10);
@@ -124,6 +127,7 @@ MenuItemLogDist ld250 (ml250, 250);
 const char ml1000[] PROGMEM = "1 km";
 MenuItemLogDist ld1000 (ml1000, 1000);
 MenuItem * const subMenuLogDist[] PROGMEM = {&ldOff, &ld10, &ld100, &ld250, &ld1000, &lb, NULL};
+#endif
 
 #ifdef ENABLE_ROTATION_MENU
 MenuItemLogRot lrOff (mlOff, LOGROT_OFF);
@@ -140,13 +144,18 @@ MenuItem * const subMenuLogRot[] PROGMEM = {&lrOff, &lrH, &lrD, &lrW, &lrM, &lb,
 
 const char mlFreq[] PROGMEM = "Frequency";
 SwitcherMenuItem loFreq (mlFreq, subMenuLogFreq);
+#ifdef ENABLE_DISTANCE_MENU
 const char mlDist[] PROGMEM = "Distance";
 SwitcherMenuItem loDist (mlDist, subMenuLogDist);
+#endif
 #ifdef ENABLE_ROTATION_MENU
 const char mlRot[] PROGMEM = "Rotation";
 SwitcherMenuItem loRot (mlRot, subMenuLogRot);
 #endif
-MenuItem * const subMenuLogOpts[] PROGMEM = {&loFreq, &loDist,
+MenuItem * const subMenuLogOpts[] PROGMEM = {&loFreq,
+#ifdef ENABLE_DISTANCE_MENU
+	&loDist,
+#endif
 #ifdef ENABLE_ROTATION_MENU
 	&loRot,
 #endif
