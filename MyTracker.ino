@@ -61,7 +61,7 @@ struct Options {
 	LogRotation logRot;
 #endif
 
-	signed char utcOffset;
+	int8_t utcOffset;
 	DaylightSavingMode dstMode;
 };
 

@@ -170,10 +170,10 @@ SwitcherMenuItem ltb (mlBack, subMenuTimeOpts);
 
 class MenuItemTimeOffset: public StaticMenuItem {
 private:
-	int offset;
+	int8_t offset;
 
 public:
-	MenuItemTimeOffset (PGM_P name, int o): StaticMenuItem (name), offset (o) {
+	MenuItemTimeOffset (PGM_P name, int8_t o): StaticMenuItem (name), offset (o) {
 	}
 
 	void activate () override {
