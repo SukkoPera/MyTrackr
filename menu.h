@@ -33,10 +33,10 @@ SwitcherMenuItem lb (mlBack, subMenuLogOpts);
 
 class MenuItemLogFreq: public StaticMenuItem {
 private:
-	int freq;
+	byte freq;
 
 public:
-	MenuItemLogFreq (PGM_P name, int f): StaticMenuItem (name), freq (f) {
+	MenuItemLogFreq (PGM_P name, byte f): StaticMenuItem (name), freq (f) {
 	}
 
 	void activate () override {
