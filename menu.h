@@ -40,17 +40,17 @@ public:
 	}
 
 	void activate () override {
-		logFreq = freq;
+		options.logFreq = freq;
 
 		DPRINT (F("Log Frequency is now "));
-		DPRINT (logFreq);
+		DPRINT (options.logFreq);
 		DPRINTLN (F(" seconds"));
 
 		lb.activate ();
 	}
 
 	bool isSelected (void) override {
-		return logFreq == freq;
+		return options.logFreq == freq;
 	}
 };
 
@@ -64,17 +64,17 @@ public:
 	}
 
 	void activate () override {
-		logDist = dist;
+		options.logDist = dist;
 
 		DPRINT (F("Log Distance is now "));
-		DPRINT (logDist);
+		DPRINT (options.logDist);
 		DPRINTLN (F(" meters"));
 
 		lb.activate ();
 	}
 
 	bool isSelected (void) override {
-		return logDist == dist;
+		return options.logDist == dist;
 	}
 };
 #endif
@@ -89,16 +89,16 @@ public:
 	}
 
 	void activate () override {
-		logRot = rot;
+		options.logRot = rot;
 
 		DPRINT (F("Log Rotation is now "));
-		DPRINTLN (logRot);
+		DPRINTLN (options.logRot);
 
 		lb.activate ();
 	}
 
 	bool isSelected (void) override {
-		return logRot == rot;
+		return options.logRot == rot;
 	}
 };
 #endif
@@ -177,17 +177,17 @@ public:
 	}
 
 	void activate () override {
-		utcOffset = offset;
+		options.utcOffset = offset;
 
 		DPRINT (F("UTC offset is now "));
-		DPRINT (utcOffset);
+		DPRINT (options.utcOffset);
 		DPRINTLN (F(" hours"));
 
 		ltb.activate ();
 	}
 
 	bool isSelected (void) override {
-		return utcOffset == offset;
+		return options.utcOffset == offset;
 	}
 };
 
@@ -200,16 +200,16 @@ public:
 	}
 
 	void activate () override {
-		dstMode = mode;
+		options.dstMode = mode;
 
 		DPRINT (F("DST mode is now "));
-		DPRINTLN (dstMode);
+		DPRINTLN (options.dstMode);
 
 		ltb.activate ();
 	}
 
 	bool isSelected (void) override {
-		return dstMode == mode;
+		return options.dstMode == mode;
 	}
 };
 
@@ -316,6 +316,9 @@ public:
 	}
 
 	void activate (void) override {
+		// Save data to EEPROM
+		EEPROM.put (EEPROM_DATA_OFFSET, options);
+		EEPROM.put (EEPROM_DATA_OFFSET + sizeof (options), EEPROM_GOOD_SIGNATURE);
 		menuHandler.hide ();
 	}
 };

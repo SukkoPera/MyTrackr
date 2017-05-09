@@ -39,22 +39,39 @@ U8GLIB_SSD1306_128X64 u8g (U8G_I2C_OPT_DEV_0 | U8G_I2C_OPT_NO_ACK | U8G_I2C_OPT_
 #include <AABlink.h>
 AABlinkShort aliveLed;
 
+#include <EEPROM.h>
+const word EEPROM_DATA_OFFSET = 18;
+const word EEPROM_GOOD_SIGNATURE = 0x1944;
 
-// Global variables
+
+// *** Global variables ***
+
+// True if logging is currently enabled
 boolean logEnabled = false;
 
-// Interval between two consecutive log updates
-byte logFreq = DEFAULT_LOG_INTERVAL;
+struct Options {
+	// Interval between two consecutive log updates
+	byte logFreq;
+
 #ifdef ENABLE_DISTANCE_MENU
-int logDist = DEFAULT_LOG_DISTANCE;
+	int logDist;
 #endif
 
 #ifdef ENABLE_ROTATION_MENU
-LogRotation logRot = DEFAULT_LOG_ROTATION;
+	LogRotation logRot;
 #endif
 
-signed char utcOffset = DEFAULT_TZ_OFFSET;
-DaylightSavingMode dstMode = DST_AUTO;
+	signed char utcOffset;
+	DaylightSavingMode dstMode;
+};
+
+Options options = {
+	DEFAULT_LOG_INTERVAL,
+	DEFAULT_LOG_DISTANCE,
+	DEFAULT_LOG_ROTATION,
+	DEFAULT_TZ_OFFSET,
+	DST_AUTO
+};
 
 GpsFix currentFix = {
 	{0, 0, false},
@@ -97,7 +114,7 @@ void draw () {
 	 **************************************************************************/
 
 	// Sat icon (Blink if currentFix is not valid)
-	time_t tt = makeTime (currentFix.time) + (utcOffset + dstOffset ()) * SECS_PER_HOUR;
+	time_t tt = makeTime (currentFix.time) + (options.utcOffset + dstOffset ()) * SECS_PER_HOUR;
 	if ((currentFix.pos.valid && timeStatus () == timeSet && now () - tt < DATA_VALID_TIME) || ((millis () / 1000) % 2) == 0) {
 		u8g.drawXBMP (0, 0, sat_width, sat_height, sat_bits);
 	}
@@ -344,6 +361,17 @@ void measureBattery () {
 void setup () {
 	DSTART (9600);
 
+	// Load data from EEPROM
+	word sig = 0x1234;
+	EEPROM.get (EEPROM_DATA_OFFSET + sizeof (Options), sig);
+	if (sig == EEPROM_GOOD_SIGNATURE) {
+		// EEPROM data is good
+		DPRINTLN (F("EEPROM data is good"));
+		EEPROM.get (EEPROM_DATA_OFFSET, options);
+	} else {
+		DPRINTLN (F("EEPROM data is invalid"));
+	}
+
 	// See if the card is present and can be initialized:
 	if (!writer.begin (SD_CHIPSELECT)) {
 		DPRINTLN (F("SD Card failed or not present"));
@@ -387,7 +415,7 @@ void loop () {
 }
 
 byte dstOffset () {
-	switch (dstMode) {
+	switch (options.dstMode) {
 		case DST_ON:
 			return 1;
 		case DST_OFF:
@@ -465,7 +493,7 @@ void decodeGPS () {
 		setTime (tt);
 
 		// Convert to local time
-		adjustTime ((utcOffset + dstOffset ()) * SECS_PER_HOUR);
+		adjustTime ((options.utcOffset + dstOffset ()) * SECS_PER_HOUR);
 	}
 }
 
@@ -500,7 +528,7 @@ void itoa_2digits (int val, char *s) {
 
 const char* makeFileName (char fn[MAX_FILENAME]) {
 #ifdef ENABLE_ROTATION_MENU
-	switch (logRot) {
+	switch (options.logRot) {
 		default:
 		case LOGROT_OFF:
 			// Use a generic "GPS.CSV"
@@ -559,15 +587,15 @@ void logPosition () {
 	if (logEnabled) {
 		time_t tcur = makeTime (currentFix.time);
 		time_t tlast = makeTime (lastLoggedFix.time);
-		if (lastLogMillis != 0 && millis () - lastLogMillis < logFreq * 1000UL) {
+		if (lastLogMillis != 0 && millis () - lastLogMillis < options.logFreq * 1000UL) {
 			//~ DPRINTLN (F("Skipping log because too early"));
 		} else if (tcur == tlast) {
 			DPRINTLN (F("Skipping log, because fix unchanged"));
 		} else if (!currentFix.pos.valid) {
 			DPRINTLN (F("Skipping log because no fix detected"));
 #ifdef ENABLE_DISTANCE_MENU
-		} else if (logDist > 0 && lastLoggedFix.pos.valid &&
-				TinyGPS::distance_between (lastLoggedFix.pos.lat, lastLoggedFix.pos.lon, currentFix.pos.lat, currentFix.pos.lon) < logDist) {
+		} else if (options.logDist > 0 && lastLoggedFix.pos.valid &&
+				TinyGPS::distance_between (lastLoggedFix.pos.lat, lastLoggedFix.pos.lon, currentFix.pos.lat, currentFix.pos.lon) < options.logDist) {
 			DPRINTLN (F("Skipping log because too close to last fix"));
 #endif
 		} else {
