@@ -1,16 +1,16 @@
 #include "config.h"
 #include "debug.h"
 
-//~ #include <PString.h>
-
-//~ #include <SoftwareSerial.h>
-//~ SoftwareSerial ss (7, 8);
-//#define GPS_SERIAL ss
-#define GPS_SERIAL Serial
-#define GPS_INTERVAL 50
-//#define GPS_BAUD 4800
+#if 0
+	#include <SoftwareSerial.h>
+	SoftwareSerial swSerial (4, 3);
+	#define GPS_SERIAL swSerial
+#else
+	#define GPS_SERIAL Serial
+#endif
 #define GPS_BAUD 9600
 
+#define GPS_INTERVAL 50
 
 // http://arduiniana.org/libraries/tinygps/
 #include <TinyGPS.h>
