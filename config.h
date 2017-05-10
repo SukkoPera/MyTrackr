@@ -44,7 +44,7 @@
  */
 #define ENABLE_ROTATION_MENU
 
-/* Default log rotation interval: NOT YET IMPLEMENTED
+/* Default log rotation interval
  */
 #define DEFAULT_LOG_ROTATION LOGROT_DAILY
 
