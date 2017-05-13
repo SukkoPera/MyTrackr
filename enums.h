@@ -1,19 +1,5 @@
+#include "common.h"
 #include <TimeLib.h>
-
-// We want enums to only use 1 byte
-#ifdef __GNUC__
-	#define _PACKED_ __attribute__ ((packed))
-#else
-	#define _PACKED_
-#endif
-
-enum _PACKED_ Key {
-	KEY_NONE,
-	KEY_PREV,
-	KEY_NEXT,
-	KEY_SELECT,
-	KEY_BACK
-};
 
 #ifdef ENABLE_ROTATION_MENU
 enum _PACKED_ LogRotation {

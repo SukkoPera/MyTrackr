@@ -62,10 +62,16 @@
  */
 #define MENU_LINES 5
 
-// Pins keys are connected to. PREV can also be left undefined.
-//~ #define KEY_PREV_PIN 6
+/* Pins keys are connected to. NEXT and SELECT are required, BACK and PREV can
+ * be left undefined.
+ */
+//~ #define KEY_PREV_PIN 5
+//~ #define KEY_BACK_PIN 6
 #define KEY_NEXT_PIN 7
 #define KEY_SELECT_PIN 8
+
+// Time interval that SELECT+NEXT must be held to toggle keylock (ms)
+#define KEY_LOCK_DELAY 2000
 
 // Time interval from last keypress to turn screen off (ms)
 #define SCREEN_OFF_DELAY 30000UL

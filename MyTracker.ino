@@ -25,6 +25,9 @@ TinyGPS gps;
 CSVWriter writer;
 boolean sdAvailable = false;
 
+// Keys
+#include "Buttons.h"
+Buttons buttons;
 
 // Display
 #include "U8glib.h"
@@ -48,6 +51,8 @@ const word EEPROM_GOOD_SIGNATURE = 0x1944;
 
 // True if logging is currently enabled
 boolean logEnabled = false;
+
+boolean keylockEnabled = false;
 
 struct Options {
 	// Interval between two consecutive log updates
@@ -123,15 +128,20 @@ void draw () {
 	u8g.setPrintPos (20, 3);
 	u8g.print (currentFix.nsats);
 
+	// Log status
+	if (logEnabled) {
+		u8g.setPrintPos (36, 3);
+		u8g.print ('L');
+	}
+
+	// Keylock
+	if (keylockEnabled) {
+		u8g.drawXBMP (74, 0, padlock_width, padlock_height, padlock_bits);
+	}
+
 	// SD icon (blink if SD failed)
 	if (sdAvailable || ((millis () / 1000) % 2) == 0) {
 		u8g.drawXBMP (90, 0, microsd_width, microsd_height, microsd_bits);
-	}
-
-	// Log status
-	if (logEnabled) {
-		u8g.setPrintPos (80, 3);
-		u8g.print ('L');
 	}
 
 	// Battery icon, drawn by hand (Blink if almost dead)
@@ -239,38 +249,20 @@ void draw () {
 	}
 }
 
-Key readKeys (void) {
-	Key uiKeyCode = KEY_NONE;
-
-	if (digitalRead (KEY_NEXT_PIN) == LOW)
-		uiKeyCode = KEY_NEXT;
-	else if (digitalRead (KEY_SELECT_PIN) == LOW)
-		uiKeyCode = KEY_SELECT;
-#ifdef KEY_PREV_PIN
-	else if (digitalRead (KEY_PREV_PIN) == LOW)
-		uiKeyCode = KEY_PREV;
-#endif
-	//~ else if ( digitalRead(uiKeyBack) == LOW )
-		//~ uiKeyCode = KEY_BACK;
-
-	return uiKeyCode;
-}
-
-void updateMenu (void) {
+void handleKeys (void) {
 #ifdef SCREEN_OFF_DELAY
 	// True if screen is off
 	static boolean sleeping = false;
 
 	// millis() of last keypress
 	static unsigned long lastKeyPress = 0;
+
+	// millis() when SELECT + NEXT press started
+	static unsigned long lockComboStart = 0;
 #endif
 
-	// Last key pressed
-	static Key lastKey = KEY_NONE;
-
-	// Avoid repeated presses
-	Key key = readKeys ();
-	if (key != KEY_NONE && key != lastKey) {
+	byte keys = buttons.read ();
+	if (keys != Buttons::KEY_NONE) {
 #ifdef SCREEN_OFF_DELAY
 		lastKeyPress = millis ();
 
@@ -280,34 +272,43 @@ void updateMenu (void) {
 			sleeping = false;
 		} else {
 #endif
-			if (menuHandler.isShown ()) {
-				switch (key) {
-					case KEY_NEXT:
-						menuHandler.next ();
-						break;
-#ifdef KEY_PREV_PIN
-					case KEY_PREV:
-						menuHandler.prev ();
-						break;
-#endif
-					case KEY_SELECT:
-						menuHandler.activate ();
-						break;
-					default:
-						break;
+			// Holding SELECT + NEXT will enable keylock
+			if ((keys & (Buttons::KEY_SELECT | Buttons::KEY_NEXT)) == (Buttons::KEY_SELECT | Buttons::KEY_NEXT)) {
+				if (lockComboStart == 0) {
+					// Just started holding
+					lockComboStart = millis ();
+				} else if (millis () - lockComboStart > KEY_LOCK_DELAY) {
+					keylockEnabled = !keylockEnabled;
+					lockComboStart = 0;
 				}
-			} else if (key != KEY_NONE) {
-				menuHandler.show ();
+			} else {
+				lockComboStart = 0;
+
+				if (!keylockEnabled) {
+					// Handle keypress
+					if (menuHandler.isShown ()) {
+						// SELECT key has precedence
+						if (keys & Buttons::KEY_SELECT)
+							menuHandler.activate ();
+						else if (keys & Buttons::KEY_NEXT)
+							menuHandler.next ();
+#ifdef KEY_PREV_PIN
+						else if (keys & Buttons::KEY_PREV)
+							menuHandler.prev ();
+#endif
+					} else {
+						// Open menu
+						menuHandler.show ();
+					}
+				}
 			}
 		}
 #ifdef SCREEN_OFF_DELAY
-	} else if (key == KEY_NONE && millis () - lastKeyPress >= SCREEN_OFF_DELAY) {
+	} else if (millis () - lastKeyPress >= SCREEN_OFF_DELAY) {
 		u8g.sleepOn ();
 		sleeping = true;
 	}
 #endif
-
-	lastKey = key;
 
 	// u8g Picture loop
 #ifdef SCREEN_OFF_DELAY
@@ -410,7 +411,7 @@ void loop () {
 	decodeGPS ();
 	logPosition ();
 	measureBattery ();
-	updateMenu ();
+	handleKeys ();
 	aliveLed.loop ();
 }
 
@@ -442,8 +443,8 @@ byte dstOffset () {
 			byte dstOff = (31 - (5 * y / 4 + 1) % 7);
 
 			if ((m > 3 && m < 10) ||
-			  (m == 3 && (d > dstOn || (d == dstOn && h >= 1))) ||
-			  (m == 10 && (d < dstOff || (d == dstOff && h <= 1))))
+				(m == 3 && (d > dstOn || (d == dstOn && h >= 1))) ||
+				(m == 10 && (d < dstOff || (d == dstOff && h <= 1))))
 				return 1;
 			else
 				return 0;
