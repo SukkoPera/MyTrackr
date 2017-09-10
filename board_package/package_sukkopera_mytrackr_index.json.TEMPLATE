@@ -1,0 +1,49 @@
+# Template file for generating the .json file that the Arduino IDE
+# "Boards Manager" wants to see.  This file must be pre-processed
+# before it will be valid:
+# Strip this comment;
+# Replace variables:
+# - %BOARDVERSION% is the *MyTrackr Board* Version
+# - %VERSION% is the *Package* Version
+# - %HASH% is the SHA-256 has for the .zip file.
+# - %SIZE% is the size of the .zip file
+#
+{
+	"packages": [
+		{
+			"name": "MyTrackr",
+			"maintainer": "SukkoPera",
+			"websiteURL": "https://github.com/SukkoPera/MyTrackr",
+			"email": "software@sukkology.net",
+			"help": {
+				"online": "https://github.com/SukkoPera/MyTrackr/wiki"
+			},
+			"platforms": [
+				{
+					"name": "MyTrackr Board %BOARDVERSION%",
+					"architecture": "avr",
+					"version": "%VERSION%",
+					"category": "Contributed",
+					"help": {
+						"online": "https://github.com/SukkoPera/MyTrackr/wiki"
+					},
+					"url": "https://github.com/SukkoPera/MyTrackr/releases/download/v%VERSION%/mytrackr-%BOARDVERSION%-brdpkg-%VERSION%.zip",
+					"archiveFileName": "mytrackr-brd.zip",
+					"checksum": "SHA-256:%HASH%",
+					"size": "%SIZE%",
+					"boards": [
+						{"name": "MyTrackr Board"}
+					],
+					"toolsDependencies": [
+						{
+							"packager": "arduino",
+							"name": "avrdude",
+							"version": "6.0.1-arduino5"
+						}
+					]
+				}
+			],
+			"tools": []
+		}
+	]
+}

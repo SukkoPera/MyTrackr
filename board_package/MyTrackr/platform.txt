@@ -1,0 +1,26 @@
+name=MyTrackr
+version=1.0
+
+#=============================================================================
+tools.avrdude1.path={runtime.tools.avrdude.path}
+tools.avrdude1.cmd.path={path}/bin/avrdude
+tools.avrdude1.config.path={runtime.ide.path}/hardware/tools/avr/etc/avrdude.conf
+
+tools.avrdude1.upload.params.verbose=-v -v -v -v
+tools.avrdude1.upload.params.quiet=-q -q
+tools.avrdude1.upload.pattern="{cmd.path}" "-C{config.path}" {upload.verbose} -p{build.mcu} -c{upload.protocol} -P{serial.port} -b{upload.speed} -D "-Uflash:w:{build.path}/{build.project_name}.hex:i"
+
+tools.avrdude1.program.params.verbose=-v -v -v -v
+tools.avrdude1.program.params.quiet=-q -q
+tools.avrdude1.program.pattern="{cmd.path}" "-C{config.path}" {program.verbose} -p{build.mcu} -c{protocol} {program.extra_params} "-Uflash:w:{build.path}/{build.project_name}.hex:i"
+
+tools.avrdude1.erase.params.verbose=-v -v -v -v
+tools.avrdude1.erase.params.quiet=-q -q
+
+#this line was edited
+tools.avrdude1.erase.pattern="{cmd.path}" "-C{config.path}" {erase.verbose} -p{build.mcu} -c{protocol} {program.extra_params} -e -Ulock:w:{bootloader.unlock_bits}:m -Uhfuse:w:{bootloader.high_fuses}:m -Ulfuse:w:{bootloader.low_fuses}:m
+
+tools.avrdude1.bootloader.params.verbose=-v -v -v -v
+tools.avrdude1.bootloader.params.quiet=-q -q
+tools.avrdude1.bootloader.pattern="{cmd.path}" "-C{config.path}" {bootloader.verbose} -p{build.mcu} -c{protocol} {program.extra_params} "-Uflash:w:{runtime.ide.path}/hardware/arduino/avr/bootloaders/{bootloader.file}:i" -Ulock:w:{bootloader.lock_bits}:m
+#==============================================================================

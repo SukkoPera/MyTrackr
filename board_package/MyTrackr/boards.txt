@@ -1,0 +1,32 @@
+#
+# Boards.txt file for the MyTrackr platforms, in format for Arduino 1.5.x and later.
+#
+# See:
+# - https://github.com/SukkoPera/MyTrackr
+# - http://github.com/Arduino/arduino/
+#
+
+name=[MyTrackr]
+version=6.2
+
+mytrackr.name=MyTrackr Board V1.0
+
+mytrackr.upload.maximum_size=32256
+mytrackr.upload.maximum_data_size=2048
+mytrackr.upload.tool=arduino:avrdude
+mytrackr.upload.protocol=arduino
+mytrackr.upload.speed=57600
+
+mytrackr.build.mcu=atmega328p
+mytrackr.build.f_cpu=8000000L
+mytrackr.build.board=AVR_UNO
+mytrackr.build.core=arduino:arduino
+mytrackr.build.variant=arduino:eightanaloginputs
+
+mytrackr.bootloader.tool=arduino:avrdude
+mytrackr.bootloader.low_fuses=0xE2
+mytrackr.bootloader.high_fuses=0xDE
+mytrackr.bootloader.extended_fuses=0xFD
+mytrackr.bootloader.lock_bits=0x2F
+mytrackr.bootloader.unlock_bits=0x3F
+mytrackr.bootloader.file=optiboot_mytrackr.hex
