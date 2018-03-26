@@ -23,4 +23,3 @@ cat $TEMPLATE | \
 	sed "s/%HASH%/$hash/g" | \
 	sed "s/%SIZE%/$size/g" \
 	> $JSON
-
