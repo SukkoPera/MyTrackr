@@ -87,6 +87,7 @@
 #define PCMSK_BIT_PREV 0
 #endif
 #define KEY_PCMSK_BITS (PCMSK_BIT_BACK | PCMSK_BIT_PREV | (1 << PCINT22) | (1 << PCINT23))
+
 // Time interval that SELECT+NEXT must be held to toggle keylock (ms)
 #define KEY_LOCK_DELAY 2000
 
