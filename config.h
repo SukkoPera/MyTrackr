@@ -103,9 +103,9 @@
 // "Alive led": pin led is connected to
 #define ALIVE_LED_PIN 9
 
-// "Alive led": blink for 10 ms every 15 s
-#define ALIVE_LED_ON_TIME 10
-#define ALIVE_LED_OFF_TIME 15000UL
+// "Alive led": blink for 75 ms every 10 s
+#define ALIVE_LED_ON_TIME 75
+#define ALIVE_LED_OFF_TIME 10000UL
 
 // Pin that controls SD/GPS/Screen power (through a MOSFET, of course)
 #define PERIPHERALS_POWER_PIN 8

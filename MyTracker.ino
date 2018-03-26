@@ -129,10 +129,21 @@ unsigned long lastLogMillis = 0;
 // Battery voltage (mV)
 unsigned int batteryVoltage = 0;
 
+// Battery percentage
+byte batPerc = 0;
+
 
 // Menu (This goes after globals, as it needs to access some of them)
 #include "menu.h"
 
+bool batteryLow () {
+	return batPerc < 20;
+}
+
+bool fixValid () {
+	time_t tt = makeTime (currentFix.time) + (options.utcOffset + dstOffset ()) * SECS_PER_HOUR;
+	return currentFix.pos.valid && timeStatus () == timeSet && now () - tt < DATA_VALID_TIME;
+}
 
 void draw () {
 	static const char naString[] PROGMEM = "N/A";
@@ -144,8 +155,7 @@ void draw () {
 	 **************************************************************************/
 
 	// Sat icon (Blink if currentFix is not valid)
-	time_t tt = makeTime (currentFix.time) + (options.utcOffset + dstOffset ()) * SECS_PER_HOUR;
-	if ((currentFix.pos.valid && timeStatus () == timeSet && now () - tt < DATA_VALID_TIME) || ((millis () / 1000) % 2) == 0) {
+	if (fixValid () || ((millis () / 1000) % 2) == 0) {
 		u8g.drawXBMP (0, 0, sat_width, sat_height, sat_bits);
 	}
 
@@ -170,17 +180,8 @@ void draw () {
 	}
 
 	// Battery icon, drawn by hand (Blink if almost dead)
-	byte batPerc = 100;
-	for (byte i = 0; i < BATTERY_POINTS_NO; i++) {
-		unsigned int t = (pgm_read_byte (&BATTERY_POINTS[i]) + BATTERY_POINT_OFFSET) * 10;
-		if (batteryVoltage < t) {
-			batPerc -= 100 / BATTERY_POINTS_NO;
-		}
-	}
-	//~ DPRINT (F("Battery percentage: "));
-	//~ DPRINTLN (batPerc);
 	int top = (HEADER_HEIGHT - BAT_HEIGHT) / 2;
-	if (batPerc > 20 || ((millis () / 1000) % 2) == 0) {
+	if (!batteryLow () || ((millis () / 1000) % 2) == 0) {
 		int batFillWidth = (BAT_WIDTH - 2 - 2) * batPerc / 100.0;
 		u8g.drawFrame (128 - BAT_WIDTH, top, BAT_WIDTH, BAT_HEIGHT);  // Outside box
 		u8g.drawBox (128 - BAT_WIDTH - BAT_TIP, top + (BAT_HEIGHT - BAT_HEIGHT / 2) / 2, BAT_TIP, BAT_HEIGHT / 2);  // Tip
@@ -379,7 +380,29 @@ void measureBattery () {
 		DPRINT (F("Battery voltage: "));
 		DPRINTLN (batteryVoltage);
 
+		// Percentage
+		batPerc = 100;
+		for (byte i = 0; i < BATTERY_POINTS_NO; i++) {
+			unsigned int t = (pgm_read_byte (&BATTERY_POINTS[i]) + BATTERY_POINT_OFFSET) * 10;
+			if (batteryVoltage < t) {
+				batPerc -= 100 / BATTERY_POINTS_NO;
+			}
+		}
+
+		DPRINT (F("Battery percentage: "));
+		DPRINTLN (batPerc);
+
 		lastBatteryMillis = millis ();
+	}
+}
+
+void updateLed () {
+	if (batteryLow ()) {
+		aliveLed.setNBlinks (3);
+	} else if (!fixValid ()) {
+		aliveLed.setNBlinks (2);
+	} else {
+		aliveLed.setNBlinks (1);
 	}
 }
 
@@ -497,6 +520,7 @@ void setup () {
 void loop () {
 	decodeGPS ();
 	logPosition ();
+	updateLed ();
 	measureBattery ();
 	handleKeys ();
 	aliveLed.loop ();
