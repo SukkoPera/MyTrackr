@@ -65,10 +65,10 @@
 /* Pins keys are connected to. NEXT and SELECT are required, BACK and PREV can
  * be left undefined.
  */
-//~ #define KEY_PREV_PIN 5
-//~ #define KEY_BACK_PIN 6
-#define KEY_NEXT_PIN 7
-#define KEY_SELECT_PIN 8
+#define KEY_BACK_PIN 7
+#define KEY_PREV_PIN 6
+#define KEY_NEXT_PIN 5
+#define KEY_SELECT_PIN 4
 
 // Time interval that SELECT+NEXT must be held to toggle keylock (ms)
 #define KEY_LOCK_DELAY 2000
@@ -82,6 +82,7 @@
 // "Alive led": blink for 10 ms every 15 s
 #define ALIVE_LED_ON_TIME 10
 #define ALIVE_LED_OFF_TIME 15000UL
+
 
 // Analog pin used to measure battery level
 #define BATTERY_PIN A0
