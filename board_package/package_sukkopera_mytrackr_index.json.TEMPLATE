@@ -20,7 +20,7 @@
 			},
 			"platforms": [
 				{
-					"name": "MyTrackr Board %BOARDVERSION%",
+					"name": "MyTrackr",
 					"architecture": "avr",
 					"version": "%VERSION%",
 					"category": "Contributed",
@@ -32,7 +32,7 @@
 					"checksum": "SHA-256:%HASH%",
 					"size": "%SIZE%",
 					"boards": [
-						{"name": "MyTrackr Board"}
+						{"name": "MyTrackr Board %BOARDVERSION%"}
 					],
 					"toolsDependencies": [
 						{
