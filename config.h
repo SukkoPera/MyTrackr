@@ -103,7 +103,7 @@
  * reference can be up to 10% off. If you want measurements to be more accurate,
  * measure the AREF pin for your particular chip and insert its value here (mV).
  */
-#define REAL_1_1_REF 1085
+#define REAL_1_1_REF 1100
 
 /* Since the raw battery voltage is greater than 1.1v, a voltage divider is
  * needed to bring the level to one that can be measured. We recommend using a
