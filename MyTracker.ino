@@ -491,6 +491,7 @@ void setup () {
 
 	// Alive led
 	aliveLed.begin (ALIVE_LED_PIN, ALIVE_LED_ON_TIME, ALIVE_LED_OFF_TIME);
+	aliveLed.blink ();
 }
 
 void loop () {
