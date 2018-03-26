@@ -454,6 +454,12 @@ void setup () {
 	DPRINT (F("Using TinyGPS "));
 	DPRINTLN (TinyGPS::library_version ());
 
+#ifdef KEY_BACK_PIN
+	pinMode (KEY_BACK_PIN, INPUT_PULLUP);
+#endif
+#ifdef KEY_PREV_PIN
+	pinMode (KEY_PREV_PIN, INPUT_PULLUP);
+#endif
 	pinMode (KEY_NEXT_PIN, INPUT_PULLUP);
 	pinMode (KEY_SELECT_PIN, INPUT_PULLUP);
 	menuHandler.begin (topMenu, MENU_LINES);
