@@ -80,14 +80,25 @@ struct Options {
 	LogRotation logRot;
 #endif
 
+#ifdef ENABLE_BACKLIGHT_MENU
+	byte backlightTimeout;
+#endif
+
 	int8_t utcOffset;
 	DaylightSavingMode dstMode;
 };
 
 Options options = {
 	DEFAULT_LOG_INTERVAL,
+#ifdef ENABLE_DISTANCE_MENU
 	DEFAULT_LOG_DISTANCE,
+#endif
+#ifdef ENABLE_ROTATION_MENU
 	DEFAULT_LOG_ROTATION,
+#endif
+#ifdef ENABLE_BACKLIGHT_MENU
+	DEFAULT_BACKLIGHT_TIMEOUT,
+#endif
 	DEFAULT_TZ_OFFSET,
 	DST_AUTO
 };
@@ -264,20 +275,20 @@ void draw () {
 }
 
 void handleKeys (void) {
-#ifdef SCREEN_OFF_DELAY
+#ifdef ENABLE_BACKLIGHT_MENU
 	// True if screen is off
 	static boolean sleeping = false;
 
 	// millis() of last keypress
 	static unsigned long lastKeyPress = 0;
+#endif
 
 	// millis() when SELECT + NEXT press started
 	static unsigned long lockComboStart = 0;
-#endif
 
 	byte keys = buttons.read ();
 	if (keys != Buttons::KEY_NONE) {
-#ifdef SCREEN_OFF_DELAY
+#ifdef ENABLE_BACKLIGHT_MENU
 		lastKeyPress = millis ();
 
 		if (sleeping) {
@@ -317,15 +328,15 @@ void handleKeys (void) {
 				}
 			}
 		}
-#ifdef SCREEN_OFF_DELAY
-	} else if (millis () - lastKeyPress >= SCREEN_OFF_DELAY) {
+#ifdef ENABLE_BACKLIGHT_MENU
+	} else if (options.backlightTimeout > 0 && millis () - lastKeyPress >= options.backlightTimeout * 1000UL) {
 		u8g.sleepOn ();
 		sleeping = true;
 	}
 #endif
 
 	// u8g Picture loop
-#ifdef SCREEN_OFF_DELAY
+#ifdef ENABLE_BACKLIGHT_MENU
 	if (!sleeping) {
 #endif
 		u8g.firstPage ();
@@ -333,7 +344,7 @@ void handleKeys (void) {
 			draw ();
 			menuHandler.draw ();
 		} while (u8g.nextPage ());
-#ifdef SCREEN_OFF_DELAY
+#ifdef ENABLE_BACKLIGHT_MENU
 	}
 #endif
 }

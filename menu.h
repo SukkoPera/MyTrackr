@@ -286,6 +286,45 @@ MenuItem * const subMenuTimeOpts[] PROGMEM = {&toOff, &toDst, &lbtop, NULL};
 
 
 /*******************************************************************************
+ * Backlight Timeout Menu
+ ******************************************************************************/
+
+#ifdef ENABLE_BACKLIGHT_MENU
+class MenuItemBacklight: public StaticMenuItem {
+private:
+	byte interval;
+
+public:
+	MenuItemBacklight (PGM_P name, byte s): StaticMenuItem (name), interval (s) {
+	}
+
+	void activate () override {
+		options.backlightTimeout = interval;
+
+		DPRINT (F("Log Frequency is now "));
+		DPRINT (options.backlightTimeout);
+		DPRINTLN (F(" seconds"));
+
+		lbtop.activate ();
+	}
+
+	bool isSelected (void) override {
+		return options.backlightTimeout == interval;
+	}
+};
+
+const char mblOn[] PROGMEM = "Always On";
+MenuItemBacklight blOn (mblOn, 0);
+MenuItemBacklight bl5 (mlf5, 5);
+const char mbl10[] PROGMEM = "15 seconds";
+MenuItemBacklight bl10 (mbl10, 10);
+MenuItemBacklight bl30 (mlf30, 30);
+MenuItemBacklight bl60 (mlf60, 60);
+MenuItem * const subMenuBacklight[] PROGMEM = {&blOn, &bl5, &bl10, &bl30, &bl60, &lbtop, NULL};
+#endif
+
+
+/*******************************************************************************
  * Main Menu
  ******************************************************************************/
 
@@ -340,11 +379,19 @@ const char mlLogOpts[] PROGMEM = "Log Options";
 SwitcherMenuItem lo (mlLogOpts, subMenuLogOpts);
 const char mlTimeOpts[] PROGMEM = "Time Options";
 SwitcherMenuItem to (mlTimeOpts, subMenuTimeOpts);
+#ifdef ENABLE_BACKLIGHT_MENU
+const char mlBl[] PROGMEM = "Backlight";
+SwitcherMenuItem bl (mlBl, subMenuBacklight);
+#endif
 ExitMenuItem ex;
 #ifdef ENABLE_SOFT_POWEROFF
 PowerOffMenuItem miPowerOff;
 #endif
-MenuItem * const topMenu[] PROGMEM = {&ss, &lo, &to, &ex,
+MenuItem * const topMenu[] PROGMEM = {&ss, &lo, &to,
+#ifdef ENABLE_BACKLIGHT_MENU
+	&bl,
+#endif
+	&ex,
 #ifdef ENABLE_SOFT_POWEROFF
 	&miPowerOff,
 #endif

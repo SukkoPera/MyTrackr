@@ -48,6 +48,15 @@
  */
 #define DEFAULT_LOG_ROTATION LOGROT_DAILY
 
+/* Define to enable the screen backlight timeout menu
+ */
+#define ENABLE_BACKLIGHT_MENU
+
+/* Default screen backlight timeout: time interval from last keypress to turn
+ * screen off (s)
+ */
+#define DEFAULT_BACKLIGHT_TIMEOUT 30
+
 /* Default offset hours from gps time (UTC).
  * Ideally, it should be possible to learn the time zone based on the GPS
  * position data.  However, that would require a complex library, probably
@@ -90,9 +99,6 @@
 
 // Time interval that SELECT+NEXT must be held to toggle keylock (ms)
 #define KEY_LOCK_DELAY 2000
-
-// Time interval from last keypress to turn screen off (ms)
-#define SCREEN_OFF_DELAY 30000UL
 
 // "Alive led": pin led is connected to
 #define ALIVE_LED_PIN 9
