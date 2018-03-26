@@ -64,12 +64,29 @@
 
 /* Pins keys are connected to. NEXT and SELECT are required, BACK and PREV can
  * be left undefined.
+ *
+ * Note that by default these are on PD4-7, corresponding to PCINT20-23.
  */
 #define KEY_BACK_PIN 7
 #define KEY_PREV_PIN 6
 #define KEY_NEXT_PIN 5
 #define KEY_SELECT_PIN 4
 
+#define ENABLE_SOFT_POWEROFF
+#define KEY_INT_VECT PCINT2_vect
+#define KEY_PCICR_BIT PCIE2
+#define KEY_PCMSK_REG PCMSK2
+#ifdef KEY_BACK_PIN
+#define PCMSK_BIT_BACK (1 << PCINT20)
+#else
+#define PCMSK_BIT_BACK 0
+#endif
+#ifdef KEY_PREV_PIN
+#define PCMSK_BIT_PREV (1 << PCINT21)
+#else
+#define PCMSK_BIT_PREV 0
+#endif
+#define KEY_PCMSK_BITS (PCMSK_BIT_BACK | PCMSK_BIT_PREV | (1 << PCINT22) | (1 << PCINT23))
 // Time interval that SELECT+NEXT must be held to toggle keylock (ms)
 #define KEY_LOCK_DELAY 2000
 
@@ -83,6 +100,8 @@
 #define ALIVE_LED_ON_TIME 10
 #define ALIVE_LED_OFF_TIME 15000UL
 
+// Pin that controls SD/GPS/Screen power (through a MOSFET, of course)
+#define PERIPHERALS_POWER_PIN 8
 
 // Analog pin used to measure battery level
 #define BATTERY_PIN A0

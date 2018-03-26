@@ -323,10 +323,29 @@ public:
 	}
 };
 
+#ifdef ENABLE_SOFT_POWEROFF
+class PowerOffMenuItem: public StaticMenuItem {
+public:
+	PowerOffMenuItem (): StaticMenuItem (PSTR("Power Off")) {
+	}
+
+	void activate (void) override {
+		powerOff ();
+	}
+};
+#endif
+
 StartStopMenuItem ss;
 const char mlLogOpts[] PROGMEM = "Log Options";
 SwitcherMenuItem lo (mlLogOpts, subMenuLogOpts);
 const char mlTimeOpts[] PROGMEM = "Time Options";
 SwitcherMenuItem to (mlTimeOpts, subMenuTimeOpts);
 ExitMenuItem ex;
-MenuItem * const topMenu[] PROGMEM = {&ss, &lo, &to, &ex, NULL};
+#ifdef ENABLE_SOFT_POWEROFF
+PowerOffMenuItem miPowerOff;
+#endif
+MenuItem * const topMenu[] PROGMEM = {&ss, &lo, &to, &ex,
+#ifdef ENABLE_SOFT_POWEROFF
+	&miPowerOff,
+#endif
+	NULL};

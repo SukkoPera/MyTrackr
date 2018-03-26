@@ -14,6 +14,8 @@ class CSVWriter: public Print {
 public:
 	boolean begin (byte ssPin);
 
+	void end ();
+
 	boolean openFile (const char* _path, byte _ncols, const char* const cols[]);
 
 	boolean closeFile ();

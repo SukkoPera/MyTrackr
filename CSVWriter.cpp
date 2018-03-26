@@ -21,6 +21,15 @@ boolean CSVWriter::begin (byte ssPin) {
 #endif
 }
 
+void CSVWriter::end () {
+#if defined (ENABLE_SD_FAT16)
+	closeFile ();
+	//~ SD.close ();	// ???
+#elif defined (ENABLE_SD_FATLIB)
+	// FIXME
+#endif
+}
+
 boolean CSVWriter::openFile (const char* path, byte ncols, const char* const cols[]) {
 	boolean ret = true;
 

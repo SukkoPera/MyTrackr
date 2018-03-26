@@ -46,6 +46,20 @@ AABlinkShort aliveLed;
 const word EEPROM_DATA_OFFSET = 18;
 const word EEPROM_GOOD_SIGNATURE = 0x1944;
 
+#ifdef ENABLE_SOFT_POWEROFF
+#include <LowPower.h>
+
+ISR (KEY_INT_VECT) {
+	// Nothing to do, actually ;)
+	DPRINTLN (F("Woke up!"));
+}
+
+#include <avr/io.h>
+#include <avr/wdt.h>
+
+#define softReset() do {wdt_enable (WDTO_30MS); while(1) {}} while (0)
+#endif
+
 
 // *** Global variables ***
 
@@ -359,7 +373,54 @@ void measureBattery () {
 }
 
 
+#ifdef ENABLE_SOFT_POWEROFF
+void powerOff () {
+	DPRINTLN (F("Power OFF"));
+	Serial.end ();
+
+	// Turn off screen
+	u8g.sleepOn ();
+
+	// Make sure i2c bus is disabled
+	TWCR = 0;
+
+	if (logEnabled) {
+		// Stop logging and SD
+		logEnabled = false;
+		writer.end ();
+	}
+
+	// Make sure SPI bus is disabled
+	SPCR = 0;
+
+#ifdef PERIPHERALS_POWER_PIN
+	// Turn off peripherals
+	digitalWrite (PERIPHERALS_POWER_PIN, HIGH);
+#endif
+
+	// Allow buffers to be flushed and key to be released
+	delay (1000);
+
+	// Enable pin-change interrupt on key pins
+	PCICR |= (1 << KEY_PCICR_BIT);
+	KEY_PCMSK_REG = KEY_PCMSK_BITS;
+
+	// Enter power down state with ADC and BOD module disabled.
+	LowPower.powerDown (SLEEP_FOREVER, ADC_OFF, BOD_OFF);
+
+	DPRINTLN (F("Power ON"));
+	PCICR &= ~(1 << KEY_PCICR_BIT);
+
+	// OK, usually I don't like this, but it makes things much easir this time!
+	softReset ();
+}
+#endif
+
 void setup () {
+#ifdef ENABLE_SOFT_POWEROFF
+	wdt_disable ();
+#endif
+
 	DSTART (9600);
 
 	// Load data from EEPROM
@@ -372,6 +433,13 @@ void setup () {
 	} else {
 		DPRINTLN (F("EEPROM data is invalid"));
 	}
+
+#ifdef PERIPHERALS_POWER_PIN
+	// Turn on peripherals
+	pinMode (PERIPHERALS_POWER_PIN, OUTPUT);
+	digitalWrite (PERIPHERALS_POWER_PIN, LOW);
+	delay (100);
+#endif
 
 	// See if the card is present and can be initialized:
 	if (!writer.begin (SD_CHIPSELECT)) {
