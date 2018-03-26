@@ -316,11 +316,11 @@ public:
 const char mblOn[] PROGMEM = "Always On";
 MenuItemBacklight blOn (mblOn, 0);
 MenuItemBacklight bl5 (mlf5, 5);
-const char mbl10[] PROGMEM = "15 seconds";
-MenuItemBacklight bl10 (mbl10, 10);
+const char mbl15[] PROGMEM = "15 seconds";
+MenuItemBacklight bl15 (mbl15, 15);
 MenuItemBacklight bl30 (mlf30, 30);
 MenuItemBacklight bl60 (mlf60, 60);
-MenuItem * const subMenuBacklight[] PROGMEM = {&blOn, &bl5, &bl10, &bl30, &bl60, &lbtop, NULL};
+MenuItem * const subMenuBacklight[] PROGMEM = {&blOn, &bl5, &bl15, &bl30, &bl60, &lbtop, NULL};
 #endif
 
 
