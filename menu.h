@@ -375,9 +375,9 @@ public:
 #endif
 
 StartStopMenuItem ss;
-const char mlLogOpts[] PROGMEM = "Log Options";
+const char mlLogOpts[] PROGMEM = "Logging";
 SwitcherMenuItem lo (mlLogOpts, subMenuLogOpts);
-const char mlTimeOpts[] PROGMEM = "Time Options";
+const char mlTimeOpts[] PROGMEM = "Time";
 SwitcherMenuItem to (mlTimeOpts, subMenuTimeOpts);
 #ifdef ENABLE_BACKLIGHT_MENU
 const char mlBl[] PROGMEM = "Backlight";
