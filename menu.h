@@ -301,7 +301,7 @@ public:
 	void activate () override {
 		options.backlightTimeout = interval;
 
-		DPRINT (F("Log Frequency is now "));
+		DPRINT (F("Backlight Timeout is now "));
 		DPRINT (options.backlightTimeout);
 		DPRINTLN (F(" seconds"));
 
