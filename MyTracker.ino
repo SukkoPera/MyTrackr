@@ -473,6 +473,7 @@ void setup () {
 #endif
 
 	// We always use these U8G settings
+	u8g.begin ();
 	u8g.setFont (u8g_font_6x10);
 	u8g.setFontPosTop ();
 	u8g.setFontRefHeightExtendedText ();
