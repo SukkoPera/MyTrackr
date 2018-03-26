@@ -130,7 +130,7 @@ unsigned long lastLogMillis = 0;
 unsigned int batteryVoltage = 0;
 
 
-// Menu (This goes after globals, as it needs to access some of them them)
+// Menu (This goes after globals, as it needs to access some of them)
 #include "menu.h"
 
 
