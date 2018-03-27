@@ -154,6 +154,14 @@ public:
 		MenuItem *item = getMenuItem (curItem);
 		item -> activate ();
 	}
+
+	void back () {
+		byte i;
+		for (i = 0; pgm_read_ptr (&(cur[i])); i++)
+				;
+		MenuItem *item = getMenuItem (i - 1);
+		item -> activate ();
+	}
 };
 
 #endif

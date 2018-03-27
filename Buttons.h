@@ -84,7 +84,7 @@ private:
 		if (digitalRead (KEY_SELECT_PIN) == LOW)
 			b |= KEY_SELECT;
 #ifdef KEY_BACK_PIN
-		if (digitalRead (KEY_SELECT) == LOW)
+		if (digitalRead (KEY_BACK_PIN) == LOW)
 			b |= KEY_BACK;
 #endif
 

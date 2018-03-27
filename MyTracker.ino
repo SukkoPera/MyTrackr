@@ -323,6 +323,10 @@ void handleKeys (void) {
 						else if (keys & Buttons::KEY_PREV)
 							menuHandler.prev ();
 #endif
+#ifdef KEY_BACK_PIN
+						else if (keys & Buttons::KEY_BACK)
+							menuHandler.back ();
+#endif
 					} else {
 						// Open menu
 						menuHandler.show ();
