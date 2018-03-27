@@ -40,11 +40,15 @@ public:
 
 class MenuHandler {
 private:
-	Menu cur;
-	byte nLines;	// No. of lines on screen
-	byte curItem;
-	byte firstItem;
-	boolean shown;
+	Menu cur;			// Current item
+	byte nLines;		// No. of lines on screen
+	byte curItem;		// Index of currently selected item
+	byte firstItem;		// Index of first visible item
+	boolean shown;		// True if menu is visible
+
+	MenuItem *getMenuItem (int n) {
+		return reinterpret_cast<MenuItem *> (pgm_read_ptr (&(cur[n])));
+	}
 
 public:
 	void begin (const Menu& m, byte _nLines, boolean _shown = false) {
@@ -75,24 +79,44 @@ public:
 
 	void draw () {
 		if (shown) {
-			byte h = u8g.getFontAscent () - u8g.getFontDescent ();
-			byte w = u8g.getWidth ();
+			const byte h = u8g.getFontAscent () - u8g.getFontDescent ();		// Line height
+			const byte scrW = u8g.getWidth ();									// Screen width
+			//~ const byte scrH = u8g.getHeight ();									// Screen height
 			MenuItem *item = NULL;
-			for (byte i = 0; i < nLines && (item = reinterpret_cast<MenuItem *> (pgm_read_ptr (&(cur[firstItem + i])))); i++) {
-				byte d = (w - u8g.getStrWidth (item -> getName ())) / 2;
+			for (byte i = 0; i < nLines && (item = getMenuItem (firstItem + i)); i++) {
+				byte d = (scrW - u8g.getStrWidth (item -> getName ())) / 2;
 				u8g.setDefaultForegroundColor ();
 
 				if (firstItem + i == curItem) {
-					u8g.drawBox (0, 16 + i * h + 1, w, h);
+					u8g.drawBox (0, HEADER_HEIGHT + i * h + 1, scrW, h);
 					u8g.setDefaultBackgroundColor ();
 				}
 
-				u8g.setPrintPos (d, 16 + i * h);
+				u8g.setPrintPos (d, HEADER_HEIGHT + i * h);
 				u8g.print (item -> getName ());
 
 				if (item -> isSelected ()) {
 					u8g.print (F(" *"));
 				}
+			}
+
+			// Show hints that there are items off screen
+			if (firstItem > 0) {
+				if (curItem == firstItem)		// Up hint is shown on first line
+					u8g.setDefaultBackgroundColor ();
+				else
+					u8g.setDefaultForegroundColor ();
+				u8g.setPrintPos (scrW - 6, HEADER_HEIGHT);
+				u8g.print ((char) 0x7B);
+			}
+
+			if (item && getMenuItem (firstItem + nLines)) {
+				if (curItem == firstItem + nLines - 1)		// Down hint is shown on last line
+					u8g.setDefaultBackgroundColor ();
+				else
+					u8g.setDefaultForegroundColor ();
+				u8g.setPrintPos (scrW - 6, HEADER_HEIGHT + (nLines - 1) * h);
+				u8g.print ((char) 0x7D);
 			}
 		}
 	}
@@ -100,7 +124,9 @@ public:
 	void prev () {
 		if (curItem-- < 1) {
 			byte i;
-			for (i = 0; pgm_read_word (&(cur[i])); i++)
+
+			// Scrolling backwards past first item, wrap down to the last one
+			for (i = 0; getMenuItem (i); i++)
 				;
 			curItem = i - 1;
 
@@ -115,7 +141,7 @@ public:
 	}
 
 	void next () {
-		MenuItem *item = reinterpret_cast<MenuItem *> (pgm_read_ptr (&(cur[++curItem])));
+		MenuItem *item = getMenuItem (++curItem);
 		if (!item) {
 			curItem = 0;
 			firstItem = 0;
@@ -125,7 +151,7 @@ public:
 	}
 
 	void activate () {
-		MenuItem *item = reinterpret_cast<MenuItem *> (pgm_read_ptr (&(cur[curItem])));
+		MenuItem *item = getMenuItem (curItem);
 		item -> activate ();
 	}
 };

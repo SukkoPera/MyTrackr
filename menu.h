@@ -391,8 +391,9 @@ MenuItem * const topMenu[] PROGMEM = {&ss, &lo, &to,
 #ifdef ENABLE_BACKLIGHT_MENU
 	&bl,
 #endif
-	&ex,
 #ifdef ENABLE_SOFT_POWEROFF
 	&miPowerOff,
 #endif
-	NULL};
+	&ex,
+	NULL
+};

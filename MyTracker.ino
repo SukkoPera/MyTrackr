@@ -30,7 +30,8 @@ boolean sdAvailable = false;
 Buttons buttons;
 
 // Display
-#include "U8glib.h"
+#include <U8glib.h>
+#include "u8g_font_mytrackr.h"
 U8GLIB_SSD1306_128X64 u8g (U8G_I2C_OPT_DEV_0 | U8G_I2C_OPT_NO_ACK | U8G_I2C_OPT_FAST);
 
 #include "enums.h"
@@ -227,7 +228,7 @@ void draw () {
 				u8g.setPrintPos (52, 32);
 				if (currentFix.course.valid) {
 					u8g.print (currentFix.course.value);
-					u8g.print ((char) 176);   // Degrees symbol, font-dependent
+					u8g.print ((char) 0x40);   // Degrees symbol, font-dependent, 176 in u8g standard 6x10
 				} else {
 					u8g.print (PSTR_TO_F (naString));
 				}
@@ -508,7 +509,7 @@ void setup () {
 
 	// We always use these U8G settings
 	u8g.begin ();
-	u8g.setFont (u8g_font_6x10);
+	u8g.setFont (u8g_font_mytrackr);
 	u8g.setFontPosTop ();
 	u8g.setFontRefHeightExtendedText ();
 
