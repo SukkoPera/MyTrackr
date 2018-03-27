@@ -96,7 +96,7 @@ public:
 				u8g.print (item -> getName ());
 
 				if (item -> isSelected ()) {
-					u8g.print (F(" *"));
+					u8g.print (F(" \x7D"));			// "Check" symbol (Amiga-logo-like!)
 				}
 			}
 
@@ -116,7 +116,7 @@ public:
 				else
 					u8g.setDefaultForegroundColor ();
 				u8g.setPrintPos (scrW - 6, HEADER_HEIGHT + (nLines - 1) * h);
-				u8g.print ((char) 0x7D);
+				u8g.print ((char) 0x7C);
 			}
 		}
 	}
