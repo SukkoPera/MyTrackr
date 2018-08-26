@@ -128,6 +128,17 @@
 // Number of ADC steps
 #define BATTERY_STEPS 1024
 
+// Percentage at which battery is marked "low"
+#define BATTERY_LOW_PERC 20
+
+// Percentage at which battery is marked "critically low"
+#define BATTERY_CRITLOW_PERC 5
+
+/* When battery is critically low, the device will be turned off after this
+ * number of seconds has passed.
+ */
+#define CRITLOW_CUTOFF_TIME 10
+
 /* Battery level is measured against the internal 1.1v reference, but such
  * reference can be up to 10% off. If you want measurements to be more accurate,
  * measure the AREF pin for your particular chip and insert its value here (mV).

@@ -69,6 +69,11 @@ boolean logEnabled = false;
 
 boolean keylockEnabled = false;
 
+#ifdef ENABLE_BACKLIGHT_MENU
+// True if screen is off
+boolean sleeping = false;
+#endif
+
 struct Options {
 	// Interval between two consecutive log updates
 	byte logFreq;
@@ -133,12 +138,25 @@ unsigned int batteryVoltage = 0;
 // Battery percentage
 byte batPerc = 0;
 
+// millis() of when battery went critically low
+unsigned long batCritLowMillis = 0;
 
 // Menu (This goes after globals, as it needs to access some of them)
 #include "menu.h"
 
+bool batteryCriticallyLow () {
+	boolean ret = batPerc < BATTERY_CRITLOW_PERC;
+
+	if (ret && batCritLowMillis == 0) {
+		DPRINTLN (F("Battery is CRITICALLY low"));
+		batCritLowMillis = millis ();
+	}
+
+	return ret;
+}
+
 bool batteryLow () {
-	return batPerc < 20;
+	return batPerc < BATTERY_LOW_PERC;
 }
 
 bool fixValid () {
@@ -156,163 +174,176 @@ bool fixValid () {
 #define CLK_TIME_COL (SCREEN_WIDTH - FONT_WIDTH * 8)
 #define SPD_CRS_COL CLK_TIME_COL
 
+// w includes tip
+void drawBattery (int x, int y, int w, int h, int tip, int perc) {
+	u8g.drawFrame (x + tip, y, w - tip, h);  // Outside box
+	u8g.drawBox (x, y + h / 4, tip, h / 2);  // Tip
+
+	const int slack = h / 6;
+	const int fillW = (w - tip - 2 * slack) * perc / 100.0;
+	u8g.drawBox (x + w - slack - fillW, y + slack, fillW, h * 2 / 3);  // Filling
+}
+
 void draw () {
 	static const char naString[] PROGMEM = "N/A";
 
 	u8g.setDefaultForegroundColor ();
 
-	/***************************************************************************
-	 * Header
-	 **************************************************************************/
+	// If battery is critically low just blink a huge battery symbol
+	if (batteryCriticallyLow ()) {
+		const int w = ((millis () / 750) % 2) * 100;
+		drawBattery (25, 17, 78, 30, 6, w);
+	} else {
+		/***************************************************************************
+		 * Header
+		 **************************************************************************/
 
-	// Sat icon (Blink if currentFix is not valid)
-	if (fixValid () || ((millis () / 1000) % 2) == 0) {
-		u8g.drawXBMP (0, 0, sat_width, sat_height, sat_bits);
-	}
-
-	// Number of sats in view
-	u8g.setPrintPos (20, 3);
-	u8g.print (currentFix.nsats);
-
-	// Log status
-	if (logEnabled) {
-		u8g.setPrintPos (36, 3);
-		u8g.print ('L');
-	}
-
-	// Keylock
-	if (keylockEnabled) {
-		u8g.drawXBMP (74, 0, padlock_width, padlock_height, padlock_bits);
-	}
-
-	// SD icon (blink if SD failed)
-	if (sdAvailable || ((millis () / 1000) % 2) == 0) {
-		u8g.drawXBMP (90, 0, microsd_width, microsd_height, microsd_bits);
-	}
-
-	// Battery icon, drawn by hand (Blink if almost dead)
-	int top = (HEADER_HEIGHT - BAT_HEIGHT) / 2;
-	if (!batteryLow () || ((millis () / 1000) % 2) == 0) {
-		int batFillWidth = (BAT_WIDTH - 2 - 2) * batPerc / 100.0;
-		u8g.drawFrame (128 - BAT_WIDTH, top, BAT_WIDTH, BAT_HEIGHT);  // Outside box
-		u8g.drawBox (128 - BAT_WIDTH - BAT_TIP, top + (BAT_HEIGHT - BAT_HEIGHT / 2) / 2, BAT_TIP, BAT_HEIGHT / 2);  // Tip
-		u8g.drawBox (128 - batFillWidth - 2, top + 2, batFillWidth, BAT_HEIGHT - 4);  // Filling
-	}
-
-
-	/***************************************************************************
-	 * Main screen
-	 **************************************************************************/
-	if (!menuHandler.isShown ()) {
-		// Top left: Coordinates
-		if (currentFix.pos.valid) {
-#ifdef USE_SIGNED_LATLON
-			u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK);
-			u8g.print (currentFix.pos.lat, LATLON_PREC);
-#else
-			float lat = abs (currentFix.pos.lat);
-			byte latCol = 0;
-			if (lat >= 100)
-				latCol = 2;
-			else if (lat >= 10)
-				latCol = 1;
-
-			float lon = abs (currentFix.pos.lon);
-			byte lonCol = 0;
-			if (lon >= 100)
-				lonCol = 2;
-			else if (lon >= 10)
-				lonCol = 1;
-
-			byte alignCol = max (latCol, lonCol);
-
-			u8g.setPrintPos ((alignCol - latCol) * FONT_WIDTH, HEADER_HEIGHT + HEADER_SLACK);
-			u8g.print (lat, LATLON_PREC);
-			if (currentFix.pos.lat >= 0)
-				u8g.print (F(" N"));
-			else
-				u8g.print (F(" S"));
-#endif
-
-#ifdef USE_SIGNED_LATLON
-			u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT);
-			u8g.print (currentFix.pos.lon, LATLON_PREC);
-#else
-			u8g.setPrintPos ((alignCol - lonCol) * FONT_WIDTH, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT);
-			u8g.print (lon, LATLON_PREC);
-			if (currentFix.pos.lon >= 0)
-				u8g.print (F(" E"));
-			else
-				u8g.print (F(" W"));
-#endif
-		} else {
-			u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK);
-			u8g.print (PSTR_TO_F (naString));
-			u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT);
-			u8g.print (PSTR_TO_F (naString));
+		// Sat icon (Blink if currentFix is not valid)
+		if (fixValid () || ((millis () / 1000) % 2) == 0) {
+			u8g.drawXBMP (0, 0, sat_width, sat_height, sat_bits);
 		}
 
-		// Altitude
-		u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT * 2);
-		if (currentFix.alt.valid) {
-			u8g.print (currentFix.alt.value);
-			u8g.print (F(" m"));
-		} else {
-			u8g.print (PSTR_TO_F (naString));
+		// Number of sats in view
+		u8g.setPrintPos (20, 3);
+		u8g.print (currentFix.nsats);
+
+		// Log status
+		if (logEnabled) {
+			u8g.setPrintPos (36, 3);
+			u8g.print ('L');
 		}
 
-		// Top right: Speed & Course
-		u8g.setPrintPos (SPD_CRS_COL, HEADER_HEIGHT + HEADER_SLACK);
-		if (currentFix.course.valid) {
-			u8g.print (currentFix.course.value);
-			u8g.print ((char) 0x40);   // Degrees symbol, font-dependent, 176 in u8g standard 6x10
-		} else {
-			u8g.print (PSTR_TO_F (naString));
+		// Keylock
+		if (keylockEnabled) {
+			u8g.drawXBMP (74, 0, padlock_width, padlock_height, padlock_bits);
 		}
 
-		u8g.setPrintPos (SPD_CRS_COL, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT);
-		if (currentFix.speed.valid) {
-			u8g.print ((int) (currentFix.speed.value + 0.5));
-			u8g.print (F(" Km/h"));
-		} else {
-			u8g.print (PSTR_TO_F (naString));
+		// SD icon (blink if SD failed)
+		if (sdAvailable || ((millis () / 1000) % 2) == 0) {
+			u8g.drawXBMP (90, 0, microsd_width, microsd_height, microsd_bits);
 		}
 
-		// Bottom of screen: Time and date
-		if (timeStatus () != timeNotSet) {
-			u8g.setPrintPos (CLK_DATE_COL, CLK_ROW);
-			u8g.print (day ());
-			u8g.print ('/');
-			u8g.print (month ());
-			u8g.print ('/');
-			u8g.print (year ());
+		// Battery icon, drawn by hand (Blink if almost dead)
+		int top = (HEADER_HEIGHT - BAT_HEIGHT) / 2;
+		if (!batteryLow () || ((millis () / 1000) % 2) == 0) {
+			int batFillWidth = (BAT_WIDTH - 2 - 2) * batPerc / 100.0;
+			u8g.drawFrame (128 - BAT_WIDTH, top, BAT_WIDTH, BAT_HEIGHT);  // Outside box
+			u8g.drawBox (128 - BAT_WIDTH - BAT_TIP, top + (BAT_HEIGHT - BAT_HEIGHT / 2) / 2, BAT_TIP, BAT_HEIGHT / 2);  // Tip
+			u8g.drawBox (128 - batFillWidth - 2, top + 2, batFillWidth, BAT_HEIGHT - 4);  // Filling
+		}
 
-			u8g.setPrintPos (CLK_TIME_COL, CLK_ROW);
-			if (hour () < 10)
-				u8g.print (0);
-			u8g.print (hour ());
-			u8g.print (':');
-			if (minute () < 10)
-				u8g.print (0);
-			u8g.print (minute ());
-			u8g.print (':');
-			if (second () < 10)
-				u8g.print (0);
-			u8g.print (second ());
-		} else {
-			u8g.setPrintPos (CLK_DATE_COL, CLK_ROW);
-			u8g.print (PSTR_TO_F (naString));
-			u8g.setPrintPos (CLK_TIME_COL, CLK_ROW);
-			u8g.print (PSTR_TO_F (naString));
+
+		/***************************************************************************
+		 * Main screen
+		 **************************************************************************/
+		if (!menuHandler.isShown ()) {
+			// Top left: Coordinates
+			if (currentFix.pos.valid) {
+	#ifdef USE_SIGNED_LATLON
+				u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK);
+				u8g.print (currentFix.pos.lat, LATLON_PREC);
+	#else
+				float lat = abs (currentFix.pos.lat);
+				byte latCol = 0;
+				if (lat >= 100)
+					latCol = 2;
+				else if (lat >= 10)
+					latCol = 1;
+
+				float lon = abs (currentFix.pos.lon);
+				byte lonCol = 0;
+				if (lon >= 100)
+					lonCol = 2;
+				else if (lon >= 10)
+					lonCol = 1;
+
+				byte alignCol = max (latCol, lonCol);
+
+				u8g.setPrintPos ((alignCol - latCol) * FONT_WIDTH, HEADER_HEIGHT + HEADER_SLACK);
+				u8g.print (lat, LATLON_PREC);
+				if (currentFix.pos.lat >= 0)
+					u8g.print (F(" N"));
+				else
+					u8g.print (F(" S"));
+	#endif
+
+	#ifdef USE_SIGNED_LATLON
+				u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT);
+				u8g.print (currentFix.pos.lon, LATLON_PREC);
+	#else
+				u8g.setPrintPos ((alignCol - lonCol) * FONT_WIDTH, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT);
+				u8g.print (lon, LATLON_PREC);
+				if (currentFix.pos.lon >= 0)
+					u8g.print (F(" E"));
+				else
+					u8g.print (F(" W"));
+	#endif
+			} else {
+				u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK);
+				u8g.print (PSTR_TO_F (naString));
+				u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT);
+				u8g.print (PSTR_TO_F (naString));
+			}
+
+			// Altitude
+			u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT * 2);
+			if (currentFix.alt.valid) {
+				u8g.print (currentFix.alt.value);
+				u8g.print (F(" m"));
+			} else {
+				u8g.print (PSTR_TO_F (naString));
+			}
+
+			// Top right: Speed & Course
+			u8g.setPrintPos (SPD_CRS_COL, HEADER_HEIGHT + HEADER_SLACK);
+			if (currentFix.course.valid) {
+				u8g.print (currentFix.course.value);
+				u8g.print ((char) 0x40);   // Degrees symbol, font-dependent, 176 in u8g standard 6x10
+			} else {
+				u8g.print (PSTR_TO_F (naString));
+			}
+
+			u8g.setPrintPos (SPD_CRS_COL, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT);
+			if (currentFix.speed.valid) {
+				u8g.print ((int) (currentFix.speed.value + 0.5));
+				u8g.print (F(" Km/h"));
+			} else {
+				u8g.print (PSTR_TO_F (naString));
+			}
+
+			// Bottom of screen: Time and date
+			if (timeStatus () != timeNotSet) {
+				u8g.setPrintPos (CLK_DATE_COL, CLK_ROW);
+				u8g.print (day ());
+				u8g.print ('/');
+				u8g.print (month ());
+				u8g.print ('/');
+				u8g.print (year ());
+
+				u8g.setPrintPos (CLK_TIME_COL, CLK_ROW);
+				if (hour () < 10)
+					u8g.print (0);
+				u8g.print (hour ());
+				u8g.print (':');
+				if (minute () < 10)
+					u8g.print (0);
+				u8g.print (minute ());
+				u8g.print (':');
+				if (second () < 10)
+					u8g.print (0);
+				u8g.print (second ());
+			} else {
+				u8g.setPrintPos (CLK_DATE_COL, CLK_ROW);
+				u8g.print (PSTR_TO_F (naString));
+				u8g.setPrintPos (CLK_TIME_COL, CLK_ROW);
+				u8g.print (PSTR_TO_F (naString));
+			}
 		}
 	}
 }
 
 void handleKeys (void) {
 #ifdef ENABLE_BACKLIGHT_MENU
-	// True if screen is off
-	static boolean sleeping = false;
-
 	// millis() of last keypress
 	static unsigned long lastKeyPress = 0;
 #endif
@@ -370,19 +401,6 @@ void handleKeys (void) {
 	} else if (options.backlightTimeout > 0 && millis () - lastKeyPress >= options.backlightTimeout * 1000UL) {
 		u8g.sleepOn ();
 		sleeping = true;
-	}
-#endif
-
-	// u8g Picture loop
-#ifdef ENABLE_BACKLIGHT_MENU
-	if (!sleeping) {
-#endif
-		u8g.firstPage ();
-		do {
-			draw ();
-			menuHandler.draw ();
-		} while (u8g.nextPage ());
-#ifdef ENABLE_BACKLIGHT_MENU
 	}
 #endif
 }
@@ -482,7 +500,7 @@ void powerOff () {
 	DPRINTLN (F("Power ON"));
 	PCICR &= ~(1 << KEY_PCICR_BIT);
 
-	// OK, usually I don't like this, but it makes things much easir this time!
+	// OK, usually I don't like this, but it makes things much easier this time!
 	softReset ();
 }
 #endif
@@ -512,19 +530,13 @@ void setup () {
 	delay (100);
 #endif
 
-	// See if the card is present and can be initialized:
-	if (!writer.begin (SD_CHIPSELECT)) {
-		DPRINTLN (F("SD Card failed or not present"));
-	} else {
-		DPRINTLN (F("SD ok"));
-		sdAvailable = true;
-	}
+	// Init screen - We always use these U8G settings
+	u8g.begin ();
+	u8g.setFont (u8g_font_mytrackr);
+	u8g.setFontPosTop ();
+	u8g.setFontRefHeightExtendedText ();
 
-	GPS_SERIAL.begin (GPS_BAUD);
-
-	DPRINT (F("Using TinyGPS "));
-	DPRINTLN (TinyGPS::library_version ());
-
+	// Init keys
 #ifdef KEY_BACK_PIN
 	pinMode (KEY_BACK_PIN, INPUT_PULLUP);
 #endif
@@ -533,8 +545,8 @@ void setup () {
 #endif
 	pinMode (KEY_NEXT_PIN, INPUT_PULLUP);
 	pinMode (KEY_SELECT_PIN, INPUT_PULLUP);
-	menuHandler.begin (topMenu, MENU_LINES);
 
+	// Init stuff to read battery and read it
 #ifdef REAL_1_1_REF
 	analogReference (INTERNAL);
 
@@ -543,24 +555,53 @@ void setup () {
 		analogRead (BATTERY_PIN);
 #endif
 
-	// We always use these U8G settings
-	u8g.begin ();
-	u8g.setFont (u8g_font_mytrackr);
-	u8g.setFontPosTop ();
-	u8g.setFontRefHeightExtendedText ();
+	measureBattery ();
+	if (!batteryCriticallyLow ()) {
+		// See if the card is present and can be initialized:
+		if (!writer.begin (SD_CHIPSELECT)) {
+			DPRINTLN (F("SD Card failed or not present"));
+		} else {
+			DPRINTLN (F("SD ok"));
+			sdAvailable = true;
+		}
 
-	// Alive led
-	aliveLed.begin (ALIVE_LED_PIN, ALIVE_LED_ON_TIME, ALIVE_LED_OFF_TIME);
-	aliveLed.blink ();
+		GPS_SERIAL.begin (GPS_BAUD);
+
+		DPRINT (F("Using TinyGPS "));
+		DPRINTLN (TinyGPS::library_version ());
+
+		menuHandler.begin (topMenu, MENU_LINES);
+
+		// Alive led
+		aliveLed.begin (ALIVE_LED_PIN, ALIVE_LED_ON_TIME, ALIVE_LED_OFF_TIME);
+		aliveLed.blink ();
+	}
 }
 
 void loop () {
-	decodeGPS ();
-	logPosition ();
-	updateLed ();
 	measureBattery ();
-	handleKeys ();
-	aliveLed.loop ();
+	if (!batteryCriticallyLow ()) {
+		decodeGPS ();
+		logPosition ();
+		updateLed ();
+		handleKeys ();
+		aliveLed.loop ();
+	} else if (millis () - batCritLowMillis > CRITLOW_CUTOFF_TIME * 1000UL) {
+		powerOff ();
+	}
+
+	// u8g Picture loop
+#ifdef ENABLE_BACKLIGHT_MENU
+	if (!sleeping) {
+#endif
+		u8g.firstPage ();
+		do {
+			draw ();
+			menuHandler.draw ();
+		} while (u8g.nextPage ());
+#ifdef ENABLE_BACKLIGHT_MENU
+	}
+#endif
 }
 
 byte dstOffset () {
