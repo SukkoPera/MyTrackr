@@ -28,6 +28,9 @@
  */
 #define LATLON_PREC 6
 
+// Use signed latitude/longitude instead of N/S and E/W
+//~ #define USE_SIGNED_LATLON
+
 // Default logging interval (sec)
 #define DEFAULT_LOG_INTERVAL 10
 
@@ -147,8 +150,12 @@
  * The default values are fine with my 18650's.
  */
 const byte BATTERY_POINTS_NO = 5;
-const unsigned int BATTERY_POINT_OFFSET = 150;
-const byte BATTERY_POINTS[BATTERY_POINTS_NO] PROGMEM = {222, 204, 191, 185, 166};
+//~ const unsigned int BATTERY_POINT_OFFSET = 150;
+//~ const byte BATTERY_POINTS[BATTERY_POINTS_NO] PROGMEM = {222, 204, 191, 185, 166};
+
+// 605050 2000 mAh
+const unsigned int BATTERY_POINT_OFFSET = 160;
+const byte BATTERY_POINTS[BATTERY_POINTS_NO] PROGMEM = {248, 233, 227, 220, 211};
 
 /* DEFINE this to DISABLE debug messages
  */

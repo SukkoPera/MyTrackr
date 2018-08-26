@@ -146,6 +146,16 @@ bool fixValid () {
 	return currentFix.pos.valid && timeStatus () == timeSet && now () - tt < DATA_VALID_TIME;
 }
 
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define FONT_WIDTH 6
+#define FONT_HEIGHT 10
+#define HEADER_SLACK 5
+#define CLK_ROW (SCREEN_HEIGHT - FONT_HEIGHT)
+#define CLK_DATE_COL 0
+#define CLK_TIME_COL (SCREEN_WIDTH - FONT_WIDTH * 8)
+#define SPD_CRS_COL CLK_TIME_COL
+
 void draw () {
 	static const char naString[] PROGMEM = "N/A";
 
@@ -194,84 +204,106 @@ void draw () {
 	 * Main screen
 	 **************************************************************************/
 	if (!menuHandler.isShown ()) {
-		switch (((millis () / 1000L) / 6) % 3) {
-			case 0:
-				// Position icon
-				u8g.drawXBMP (20, 33, position_width, position_height, position_bits);
+		// Top left: Coordinates
+		if (currentFix.pos.valid) {
+#ifdef USE_SIGNED_LATLON
+			u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK);
+			u8g.print (currentFix.pos.lat, LATLON_PREC);
+#else
+			float lat = abs (currentFix.pos.lat);
+			byte latCol = 0;
+			if (lat >= 100)
+				latCol = 2;
+			else if (lat >= 10)
+				latCol = 1;
 
-				// Coordinates
-				if (currentFix.pos.valid) {
-					u8g.setPrintPos (52, 27);
-					u8g.print (currentFix.pos.lat, LATLON_PREC);
-					u8g.setPrintPos (52, 37);
-					u8g.print (currentFix.pos.lon, LATLON_PREC);
-				} else {
-					u8g.setPrintPos (52, 27);
-					u8g.print (PSTR_TO_F (naString));
-					u8g.setPrintPos (52, 37);
-					u8g.print (PSTR_TO_F (naString));
-				}
+			float lon = abs (currentFix.pos.lon);
+			byte lonCol = 0;
+			if (lon >= 100)
+				lonCol = 2;
+			else if (lon >= 10)
+				lonCol = 1;
 
-				u8g.setPrintPos (52, 47);
-				if (currentFix.alt.valid) {
-					u8g.print (currentFix.alt.value);
-					u8g.print (F(" m"));
-				} else {
-					u8g.print (PSTR_TO_F (naString));
-				}
+			byte alignCol = max (latCol, lonCol);
 
-				break;
-			case 1: {
-				// Compass icon
-				u8g.drawXBMP (20, 33, compass_width, compass_height, compass_bits);
+			u8g.setPrintPos ((alignCol - latCol) * FONT_WIDTH, HEADER_HEIGHT + HEADER_SLACK);
+			u8g.print (lat, LATLON_PREC);
+			if (currentFix.pos.lat >= 0)
+				u8g.print (F(" N"));
+			else
+				u8g.print (F(" S"));
+#endif
 
-				u8g.setPrintPos (52, 32);
-				if (currentFix.course.valid) {
-					u8g.print (currentFix.course.value);
-					u8g.print ((char) 0x40);   // Degrees symbol, font-dependent, 176 in u8g standard 6x10
-				} else {
-					u8g.print (PSTR_TO_F (naString));
-				}
+#ifdef USE_SIGNED_LATLON
+			u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT);
+			u8g.print (currentFix.pos.lon, LATLON_PREC);
+#else
+			u8g.setPrintPos ((alignCol - lonCol) * FONT_WIDTH, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT);
+			u8g.print (lon, LATLON_PREC);
+			if (currentFix.pos.lon >= 0)
+				u8g.print (F(" E"));
+			else
+				u8g.print (F(" W"));
+#endif
+		} else {
+			u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK);
+			u8g.print (PSTR_TO_F (naString));
+			u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT);
+			u8g.print (PSTR_TO_F (naString));
+		}
 
-				u8g.setPrintPos (52, 42);
-				if (currentFix.speed.valid) {
-					u8g.print (currentFix.speed.value);
-					u8g.print (F(" Km/h"));
-				} else {
-					u8g.print (PSTR_TO_F (naString));
-				}
-				break;
-			} case 2:
-				// Clock icon
-				u8g.drawXBMP (20, 33, clock_width, clock_height, clock_bits);
+		// Altitude
+		u8g.setPrintPos (0, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT * 2);
+		if (currentFix.alt.valid) {
+			u8g.print (currentFix.alt.value);
+			u8g.print (F(" m"));
+		} else {
+			u8g.print (PSTR_TO_F (naString));
+		}
 
-				if (timeStatus () != timeNotSet) {
-					u8g.setPrintPos (52, 32);
-					u8g.print (day ());
-					u8g.print ('/');
-					u8g.print (month ());
-					u8g.print ('/');
-					u8g.print (year ());
+		// Top right: Speed & Course
+		u8g.setPrintPos (SPD_CRS_COL, HEADER_HEIGHT + HEADER_SLACK);
+		if (currentFix.course.valid) {
+			u8g.print (currentFix.course.value);
+			u8g.print ((char) 0x40);   // Degrees symbol, font-dependent, 176 in u8g standard 6x10
+		} else {
+			u8g.print (PSTR_TO_F (naString));
+		}
 
-					u8g.setPrintPos (52, 42);
-					if (hour () < 10)
-						u8g.print (0);
-					u8g.print (hour ());
-					u8g.print (':');
-					if (minute () < 10)
-						u8g.print (0);
-					u8g.print (minute ());
-					u8g.print (':');
-					if (second () < 10)
-						u8g.print (0);
-					u8g.print (second ());
-				} else {
-					u8g.setPrintPos (52, 32);
-					u8g.print (PSTR_TO_F (naString));
-					u8g.setPrintPos (52, 42);
-					u8g.print (PSTR_TO_F (naString));
-				}
-				break;
+		u8g.setPrintPos (SPD_CRS_COL, HEADER_HEIGHT + HEADER_SLACK + FONT_HEIGHT);
+		if (currentFix.speed.valid) {
+			u8g.print ((int) (currentFix.speed.value + 0.5));
+			u8g.print (F(" Km/h"));
+		} else {
+			u8g.print (PSTR_TO_F (naString));
+		}
+
+		// Bottom of screen: Time and date
+		if (timeStatus () != timeNotSet) {
+			u8g.setPrintPos (CLK_DATE_COL, CLK_ROW);
+			u8g.print (day ());
+			u8g.print ('/');
+			u8g.print (month ());
+			u8g.print ('/');
+			u8g.print (year ());
+
+			u8g.setPrintPos (CLK_TIME_COL, CLK_ROW);
+			if (hour () < 10)
+				u8g.print (0);
+			u8g.print (hour ());
+			u8g.print (':');
+			if (minute () < 10)
+				u8g.print (0);
+			u8g.print (minute ());
+			u8g.print (':');
+			if (second () < 10)
+				u8g.print (0);
+			u8g.print (second ());
+		} else {
+			u8g.setPrintPos (CLK_DATE_COL, CLK_ROW);
+			u8g.print (PSTR_TO_F (naString));
+			u8g.setPrintPos (CLK_TIME_COL, CLK_ROW);
+			u8g.print (PSTR_TO_F (naString));
 		}
 	}
 }
