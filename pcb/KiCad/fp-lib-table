@@ -1,4 +1,5 @@
 (fp_lib_table
   (lib (name MOUDLE-GPS-NEO-6M_24P-16X12.2MM_)(type Legacy)(uri "/home/sukko/Documents/kicad/lib/uBlox NEO-6M GPS/MOUDLE-GPS-NEO-6M_24P-16X12.2MM_.mod")(options "")(descr ""))
   (lib (name Sukko)(type KiCad)(uri "$(KIPRJMOD)/Sukko.pretty")(options "")(descr ""))
+  (lib (name MyTrackr)(type KiCad)(uri ${KIPRJMOD}/MyTrackr.pretty)(options "")(descr ""))
 )

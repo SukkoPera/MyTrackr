@@ -1,0 +1,6 @@
+(sym_lib_table
+  (lib (name MyTrackr-rescue)(type Legacy)(uri ${KIPRJMOD}/MyTrackr-rescue.lib)(options "")(descr ""))
+  (lib (name MyTrackr)(type Legacy)(uri ${KIPRJMOD}/libs/MyTrackr.lib)(options "")(descr ""))
+  (lib (name MOUDLE-GPS-NEO-6M_24P-16X12.2MM_)(type Legacy)(uri ${KIPRJMOD}/libs/MOUDLE-GPS-NEO-6M_24P-16X12.2MM_.lib)(options "")(descr ""))
+  (lib (name void)(type Legacy)(uri ${KIPRJMOD}/libs/void.lib)(options "")(descr ""))
+)
