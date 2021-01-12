@@ -6,4 +6,9 @@ K POWER REGULATOR 3v3 buck boost
 F http://www.saiertong.com/files856985665897965/productpdf/2014-1-17/183612173.pdf
 $ENDCMP
 #
+$CMP VBAT
+D Power symbol creates a global label with name "VBAT"
+K power-flag
+$ENDCMP
+#
 #End Doc Library
