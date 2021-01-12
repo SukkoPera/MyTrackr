@@ -13,14 +13,14 @@ Comment2 ""
 Comment3 ""
 Comment4 "Work in progress!"
 $EndDescr
-Text Label 3950 3550 0    60   ~ 0
-ARDUINO_PIN_4
-Text Label 3950 3450 0    60   ~ 0
-ARDUINO_PIN_5
-Text Label 3950 3350 0    60   ~ 0
-ARDUINO_PIN_6
-Text Label 3950 3250 0    60   ~ 0
-ARDUINO_PIN_7
+Text Label 4120 3550 0    60   ~ 0
+sel
+Text Label 4120 3450 0    60   ~ 0
+next
+Text Label 4120 3350 0    60   ~ 0
+prev
+Text Label 4120 3250 0    60   ~ 0
+back
 NoConn ~ 8550 2350
 NoConn ~ 8550 2450
 NoConn ~ 8550 2550
@@ -79,7 +79,7 @@ DTR
 Text Label 6430 6715 2    60   ~ 0
 DTR
 Text Label 1350 5150 0    60   ~ 0
-ARDUINO_PIN_9
+act_led
 Text Label 1700 3700 0    60   ~ 0
 MOSI
 Text Label 1700 3800 0    60   ~ 0
@@ -96,7 +96,7 @@ NoConn ~ 1950 4100
 NoConn ~ 1950 4700
 NoConn ~ 3950 3650
 Text Label 1350 5450 0    60   ~ 0
-ARDUINO_PIN_8
+~peripherals_power
 Text Label 1350 6600 0    60   ~ 0
 VCHG
 Text Label 3050 1600 0    60   ~ 0
@@ -1202,4 +1202,22 @@ $EndComp
 Wire Wire Line
 	2850 3100 2950 3100
 Connection ~ 2850 3100
+Wire Wire Line
+	2850 4900 2950 4900
+Connection ~ 2850 4900
+Connection ~ 2950 4900
+Wire Wire Line
+	2950 4900 3050 4900
+Text Notes 3955 3245 0    50   ~ 0
+7
+Text Notes 3955 3345 0    50   ~ 0
+6
+Text Notes 3955 3445 0    50   ~ 0
+5
+Text Notes 3955 3545 0    50   ~ 0
+4
+Text Notes 1885 3500 0    50   ~ 0
+9
+Text Notes 1885 3400 0    50   ~ 0
+8
 $EndSCHEMATC
