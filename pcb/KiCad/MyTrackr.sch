@@ -5,7 +5,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "MyTrackr"
-Date "2021-01-10"
+Date "2021-01-14"
 Rev "2git"
 Comp "SukkoPera"
 Comment1 ""
@@ -50,17 +50,7 @@ NoConn ~ 7450 2150
 NoConn ~ 7450 1850
 Text Label 8900 2050 2    60   ~ 0
 tx_gps
-Text Label 6385 6535 2    60   ~ 0
-tx_gps
-Text Label 6385 6435 2    60   ~ 0
-rx_328
-Text Label 6385 6335 2    60   ~ 0
-rx_gps
-Text Label 6385 6235 2    60   ~ 0
-tx_328
 Text Label 5500 4185 2    60   ~ 0
-~dtr
-Text Label 6385 6135 2    60   ~ 0
 ~dtr
 Text Label 2745 1835 0    50   ~ 0
 act_led
@@ -91,29 +81,17 @@ Wire Wire Line
 Wire Wire Line
 	1505 6205 1105 6205
 Wire Wire Line
-	6385 6135 6035 6135
-Wire Wire Line
 	8550 2050 8900 2050
 Wire Wire Line
 	8550 1950 8900 1950
 Wire Wire Line
 	4665 2635 4665 2735
-Wire Wire Line
-	3370 3335 3470 3335
 Connection ~ 10000 2700
 Connection ~ 5150 3635
 Wire Wire Line
 	5150 4185 5500 4185
 Wire Wire Line
 	5150 4035 5150 4185
-Wire Wire Line
-	6385 6535 6035 6535
-Wire Wire Line
-	6385 6435 6035 6435
-Wire Wire Line
-	6385 6335 6035 6335
-Wire Wire Line
-	6385 6235 6035 6235
 Wire Wire Line
 	9360 5040 9360 4890
 Wire Wire Line
@@ -231,8 +209,6 @@ Wire Wire Line
 	2105 6105 2605 6105
 Wire Wire Line
 	2605 6305 2305 6305
-Wire Wire Line
-	3370 2885 3370 3235
 Wire Wire Line
 	1120 2115 1120 4555
 Connection ~ 7200 2550
@@ -365,17 +341,6 @@ F 3 "" H 9360 4890 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector:Conn_01x03_Male J4
-U 1 1 60013045
-P 5835 5540
-F 0 "J4" H 5807 5472 50  0000 R CNN
-F 1 "CONN_BAT" H 5807 5563 50  0000 R CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 5835 5540 50  0001 C CNN
-F 3 "~" H 5835 5540 50  0001 C CNN
-	1    5835 5540
-	1    0    0    1   
-$EndComp
-$Comp
 L power:GND #PWR0106
 U 1 1 6003CA1E
 P 8860 5340
@@ -409,10 +374,10 @@ F 3 "" H 5135 2160 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector_Generic:Conn_02x03_Odd_Even J2
+L Connector_Generic:Conn_02x03_Odd_Even J3
 U 1 1 6005B0A6
 P 5840 7210
-F 0 "J2" H 5890 7527 50  0000 C CNN
+F 0 "J3" H 5890 7527 50  0000 C CNN
 F 1 "CONN_ICSP" H 5890 7436 50  0000 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical" H 5840 7210 50  0001 C CNN
 F 3 "~" H 5840 7210 50  0001 C CNN
@@ -632,17 +597,6 @@ F 3 "~" H 3270 4535 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Connector:Conn_01x04_Male P1
-U 1 1 601D5E73
-P 3670 3235
-F 0 "P1" H 3642 3117 50  0000 R CNN
-F 1 "CONN_OLED" H 3642 3208 50  0000 R CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 3670 3235 50  0001 C CNN
-F 3 "~" H 3670 3235 50  0001 C CNN
-	1    3670 3235
-	-1   0    0    1   
-$EndComp
-$Comp
 L Switch:SW_Push SW3
 U 1 1 601EEEB4
 P 3620 4235
@@ -674,17 +628,6 @@ F 2 "Button_Switch_SMD:SW_SPST_EVPBF" H 4320 4235 50  0001 C CNN
 F 3 "~" H 4320 4235 50  0001 C CNN
 	1    4320 4035
 	0    1    1    0   
-$EndComp
-$Comp
-L Connector:Conn_01x05_Male J3
-U 1 1 60211901
-P 5835 6335
-F 0 "J3" H 5807 6359 50  0000 R CNN
-F 1 "CONN_SERIAL" H 5807 6268 50  0000 R CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical" H 5835 6335 50  0001 C CNN
-F 3 "~" H 5835 6335 50  0001 C CNN
-	1    5835 6335
-	1    0    0    -1  
 $EndComp
 $Comp
 L MyTrackr:10A45B_Module J1
@@ -866,17 +809,6 @@ F 1 "GND" H 3825 4462 50  0000 C CNN
 F 2 "" H 3820 4635 50  0001 C CNN
 F 3 "" H 3820 4635 50  0001 C CNN
 	1    3820 4635
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:VPP #PWR0116
-U 1 1 60568F57
-P 3370 2885
-F 0 "#PWR0116" H 3370 2735 50  0001 C CNN
-F 1 "VPP" H 3385 3058 50  0000 C CNN
-F 2 "" H 3370 2885 50  0001 C CNN
-F 3 "" H 3370 2885 50  0001 C CNN
-	1    3370 2885
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -1107,12 +1039,6 @@ Text Label 2965 3235 2    50   ~ 0
 Text Label 2965 3035 2    50   ~ 0
 sda
 Wire Wire Line
-	2665 3135 3470 3135
-Wire Wire Line
-	2665 3035 3470 3035
-Wire Wire Line
-	3370 3235 3470 3235
-Wire Wire Line
 	2665 3435 2965 3435
 Wire Wire Line
 	2665 3535 2965 3535
@@ -1126,19 +1052,6 @@ Wire Wire Line
 	2665 2635 4365 2635
 Text Notes 2670 2635 0    50   ~ 0
 A0
-$Comp
-L power:GND #PWR0115
-U 1 1 6055ECA2
-P 3370 3380
-F 0 "#PWR0115" H 3370 3130 50  0001 C CNN
-F 1 "GND" H 3375 3207 50  0000 C CNN
-F 2 "" H 3370 3380 50  0001 C CNN
-F 3 "" H 3370 3380 50  0001 C CNN
-	1    3370 3380
-	-1   0    0    -1  
-$EndComp
-Wire Wire Line
-	3370 3380 3370 3335
 Connection ~ 3970 4585
 Wire Wire Line
 	3970 4585 4320 4585
@@ -1223,55 +1136,6 @@ F 3 "" H 5140 2540 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	5140 2540 5140 2635
-Wire Wire Line
-	6035 5640 6155 5640
-Wire Wire Line
-	6155 5640 6155 5755
-Wire Wire Line
-	6035 5440 6155 5440
-Wire Wire Line
-	6155 5440 6155 5315
-Wire Wire Line
-	6035 5540 6335 5540
-Wire Wire Line
-	6335 5540 6335 5315
-$Comp
-L MyTrackr:VBAT #PWR0126
-U 1 1 6054073A
-P 6335 5315
-F 0 "#PWR0126" H 6335 5165 50  0001 C CNN
-F 1 "VBAT" H 6350 5488 50  0000 C CNN
-F 2 "" H 6335 5315 50  0001 C CNN
-F 3 "" H 6335 5315 50  0001 C CNN
-	1    6335 5315
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:+5V #PWR0127
-U 1 1 60541662
-P 6155 5315
-F 0 "#PWR0127" H 6155 5165 50  0001 C CNN
-F 1 "+5V" H 6170 5488 50  0000 C CNN
-F 2 "" H 6155 5315 50  0001 C CNN
-F 3 "" H 6155 5315 50  0001 C CNN
-	1    6155 5315
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR0128
-U 1 1 60541AAE
-P 6155 5755
-F 0 "#PWR0128" H 6155 5505 50  0001 C CNN
-F 1 "GND" H 6160 5582 50  0000 C CNN
-F 2 "" H 6155 5755 50  0001 C CNN
-F 3 "" H 6155 5755 50  0001 C CNN
-	1    6155 5755
-	1    0    0    -1  
-$EndComp
-Text Notes 6475 5265 0    50   ~ 0
-LI-ION BATTERY\n3.3 - 4.2V
-Text Notes 6070 5265 2    50   ~ 0
-ONLY PRESENT\nWHILE CHARGING
 $Comp
 L power:+5V #PWR0129
 U 1 1 6054CCC2
@@ -1436,4 +1300,192 @@ Wire Wire Line
 	5245 1035 5245 935 
 Text Notes 5390 965  0    50   ~ 0
 SKIP MOSFET AND CLOSE THIS\nFOR ALWAYS-ON PERIPHERALS
+Wire Wire Line
+	2665 3035 2965 3035
+Wire Wire Line
+	2665 3135 2965 3135
+$Comp
+L Connector:Conn_01x03_Male J2
+U 1 1 60013045
+P 8545 6300
+F 0 "J2" H 8517 6232 50  0000 R CNN
+F 1 "CONN_BAT" H 8517 6323 50  0000 R CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 8545 6300 50  0001 C CNN
+F 3 "~" H 8545 6300 50  0001 C CNN
+	1    8545 6300
+	1    0    0    1   
+$EndComp
+Wire Wire Line
+	8745 6400 8865 6400
+Wire Wire Line
+	8865 6400 8865 6515
+Wire Wire Line
+	8745 6200 8865 6200
+Wire Wire Line
+	8865 6200 8865 6075
+Wire Wire Line
+	8745 6300 9045 6300
+Wire Wire Line
+	9045 6300 9045 6075
+$Comp
+L MyTrackr:VBAT #PWR0126
+U 1 1 6054073A
+P 9045 6075
+F 0 "#PWR0126" H 9045 5925 50  0001 C CNN
+F 1 "VBAT" H 9060 6248 50  0000 C CNN
+F 2 "" H 9045 6075 50  0001 C CNN
+F 3 "" H 9045 6075 50  0001 C CNN
+	1    9045 6075
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0127
+U 1 1 60541662
+P 8865 6075
+F 0 "#PWR0127" H 8865 5925 50  0001 C CNN
+F 1 "+5V" H 8880 6248 50  0000 C CNN
+F 2 "" H 8865 6075 50  0001 C CNN
+F 3 "" H 8865 6075 50  0001 C CNN
+	1    8865 6075
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0128
+U 1 1 60541AAE
+P 8865 6515
+F 0 "#PWR0128" H 8865 6265 50  0001 C CNN
+F 1 "GND" H 8870 6342 50  0000 C CNN
+F 2 "" H 8865 6515 50  0001 C CNN
+F 3 "" H 8865 6515 50  0001 C CNN
+	1    8865 6515
+	1    0    0    -1  
+$EndComp
+Text Notes 9185 6025 0    50   ~ 0
+LI-ION BATTERY\n3.3 - 4.2V
+Text Notes 8780 6025 2    50   ~ 0
+ONLY PRESENT\nWHILE CHARGING
+Text Label 5635 6590 0    60   ~ 0
+tx_gps
+Text Label 5635 6490 0    60   ~ 0
+rx_328
+Text Label 5635 6390 0    60   ~ 0
+rx_gps
+Text Label 5635 6290 0    60   ~ 0
+tx_328
+Text Label 5635 6190 0    60   ~ 0
+~dtr
+Wire Wire Line
+	5635 6190 5985 6190
+Wire Wire Line
+	5635 6590 5985 6590
+Wire Wire Line
+	5635 6490 5985 6490
+Wire Wire Line
+	5635 6390 5985 6390
+Wire Wire Line
+	5635 6290 5985 6290
+$Comp
+L Connector:Conn_01x05_Male J4
+U 1 1 60211901
+P 6185 6390
+F 0 "J4" H 6157 6414 50  0000 R CNN
+F 1 "CONN_SERIAL" H 6157 6323 50  0000 R CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical" H 6185 6390 50  0001 C CNN
+F 3 "~" H 6185 6390 50  0001 C CNN
+	1    6185 6390
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	5885 5715 5985 5715
+$Comp
+L Connector:Conn_01x04_Male J5
+U 1 1 601D5E73
+P 6185 5615
+F 0 "J5" H 6157 5497 50  0000 R CNN
+F 1 "CONN_OLED" H 6157 5588 50  0000 R CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 6185 5615 50  0001 C CNN
+F 3 "~" H 6185 5615 50  0001 C CNN
+	1    6185 5615
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	5180 5515 5615 5515
+Wire Wire Line
+	5180 5415 5445 5415
+Wire Wire Line
+	5885 5615 5985 5615
+$Comp
+L power:GND #PWR0115
+U 1 1 6055ECA2
+P 5885 5760
+F 0 "#PWR0115" H 5885 5510 50  0001 C CNN
+F 1 "GND" H 5890 5587 50  0000 C CNN
+F 2 "" H 5885 5760 50  0001 C CNN
+F 3 "" H 5885 5760 50  0001 C CNN
+	1    5885 5760
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	5885 5760 5885 5715
+$Comp
+L power:VPP #PWR0116
+U 1 1 60568F57
+P 5885 4870
+F 0 "#PWR0116" H 5885 4720 50  0001 C CNN
+F 1 "VPP" H 5900 5043 50  0000 C CNN
+F 2 "" H 5885 4870 50  0001 C CNN
+F 3 "" H 5885 4870 50  0001 C CNN
+	1    5885 4870
+	1    0    0    -1  
+$EndComp
+Text Label 5180 5415 0    50   ~ 0
+sda
+Text Label 5180 5515 0    50   ~ 0
+scl
+$Comp
+L Device:R R11
+U 1 1 60746F65
+P 5445 5160
+F 0 "R11" H 5375 5206 50  0000 R CNN
+F 1 "3.3k" H 5375 5115 50  0000 R CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" V 5375 5160 50  0001 C CNN
+F 3 "~" H 5445 5160 50  0001 C CNN
+	1    5445 5160
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R12
+U 1 1 60747A79
+P 5615 5160
+F 0 "R12" H 5685 5206 50  0000 L CNN
+F 1 "3.3k" H 5685 5115 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" V 5545 5160 50  0001 C CNN
+F 3 "~" H 5615 5160 50  0001 C CNN
+	1    5615 5160
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5885 4870 5885 4930
+Wire Wire Line
+	5445 5310 5445 5415
+Connection ~ 5445 5415
+Wire Wire Line
+	5445 5415 5985 5415
+Wire Wire Line
+	5615 5310 5615 5515
+Connection ~ 5615 5515
+Wire Wire Line
+	5615 5515 5985 5515
+Wire Wire Line
+	5615 5010 5615 4930
+Wire Wire Line
+	5615 4930 5885 4930
+Connection ~ 5885 4930
+Wire Wire Line
+	5885 4930 5885 5615
+Wire Wire Line
+	5445 5010 5445 4930
+Wire Wire Line
+	5445 4930 5615 4930
+Connection ~ 5615 4930
 $EndSCHEMATC
